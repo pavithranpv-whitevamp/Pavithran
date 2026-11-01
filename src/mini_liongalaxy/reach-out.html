@@ -1,0 +1,144 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="robots" content="noindex, nofollow">
+  <title>Reach Out | Mini Lion Galaxy</title>
+  <meta name="description" content="Say hello to Mini Lion Galaxy: ideas, feedback and collaborations welcome.">
+  <meta name="theme-color" content="#120c35">
+  <link rel="icon" href="logo.jpg">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Baloo+2:wght@600;700;800&family=Nunito:wght@400;700;800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="style.css?v=4">
+</head>
+<body>
+  <a class="skip-link" href="#main">Skip to content</a>
+  <div class="starfield" aria-hidden="true"></div>
+
+  <header class="site-header">
+    <div class="wrap header-inner">
+      <a class="brand" href="./" aria-label="Mini Lion Galaxy home">
+        <img class="logo-img" src="logo.jpg" alt="" width="64" height="46">
+        <span>Mini Lion Galaxy</span>
+      </a>
+      <button class="menu-toggle" type="button" aria-expanded="false" aria-controls="main-nav" aria-label="Menu">☰</button>
+      <nav class="main-nav" id="main-nav" aria-label="Main">
+        <a href="./">Home</a>
+        <a href="explore.html">Explore</a>
+        <a href="reach-out.html" aria-current="page">Reach out</a>
+      </nav>
+    </div>
+  </header>
+
+  <main id="main">
+    <div class="page-banner wrap">
+      <span class="eyebrow">Reach out</span>
+      <h1>Say <span>hello!</span> 👋</h1>
+      <p>Parents, teachers and little fans: we'd love to hear your ideas, feedback and story requests.</p>
+    </div>
+
+    <section class="section" style="padding-top:30px">
+      <div class="wrap reach-grid">
+        <div class="contact-cards">
+          <a class="contact-card reveal" style="--c:var(--pink)" href="https://www.youtube.com/@miniliongalaxy" target="_blank" rel="noopener">
+            <span class="icon" aria-hidden="true">▶️</span>
+            <span>
+              <h2>YouTube channel</h2>
+              <p>@MiniLionGalaxy: watch, like and comment</p>
+            </span>
+          </a>
+          <a class="contact-card reveal" style="--c:var(--sun)" href="https://www.youtube.com/@miniliongalaxy?sub_confirmation=1" target="_blank" rel="noopener">
+            <span class="icon" aria-hidden="true">🔔</span>
+            <span>
+              <h2>Subscribe</h2>
+              <p>Get a new story every week</p>
+            </span>
+          </a>
+          <div class="contact-card reveal" style="--c:var(--sky)">
+            <span class="icon" aria-hidden="true">💡</span>
+            <span>
+              <h2>Story requests</h2>
+              <p>Tell us which letter, animal or lesson your little one wants next!</p>
+            </span>
+          </div>
+        </div>
+
+        <form class="form-card reveal" id="reach-form" novalidate>
+          <h2>Send us a message</h2>
+          <p>We read every message, big or small.</p>
+          <div class="form-row">
+            <div class="field">
+              <label for="f-name">Your name</label>
+              <input id="f-name" name="name" type="text" autocomplete="name" required>
+            </div>
+            <div class="field">
+              <label for="f-email">Email</label>
+              <input id="f-email" name="email" type="email" autocomplete="email" required>
+            </div>
+          </div>
+          <div class="form-row">
+            <div class="field">
+              <label for="f-who">I am a…</label>
+              <select id="f-who" name="who">
+                <option>Parent</option>
+                <option>Teacher</option>
+                <option>Brand / Collaboration</option>
+                <option>Other</option>
+              </select>
+            </div>
+            <div class="field">
+              <label for="f-topic">About</label>
+              <select id="f-topic" name="topic">
+                <option>Story request</option>
+                <option>Feedback</option>
+                <option>Collaboration</option>
+                <option>Something else</option>
+              </select>
+            </div>
+          </div>
+          <div class="field">
+            <label for="f-message">Message</label>
+            <textarea id="f-message" name="message" required></textarea>
+          </div>
+          <button class="btn btn-pink" type="submit">🚀 Send message</button>
+          <p class="form-note" id="form-note" aria-live="polite"></p>
+        </form>
+      </div>
+    </section>
+  </main>
+
+  <footer class="site-footer">
+    <div class="wrap">
+      <div class="footer-grid">
+        <div class="footer-brand">
+          <img class="logo-img" src="logo.jpg" alt="Mini Lion Galaxy" width="170" height="123" loading="lazy" style="height:auto">
+          <p>ABCs, short stories and fun learning for little stars. A new story every week!</p>
+        </div>
+        <div>
+          <h2>Explore</h2>
+          <ul class="footer-links">
+            <li><a href="./">Home</a></li>
+            <li><a href="explore.html">Videos</a></li>
+            <li><a href="reach-out.html">Reach out</a></li>
+          </ul>
+        </div>
+        <div>
+          <h2>Watch us on</h2>
+          <ul class="footer-links">
+            <li><a href="https://www.youtube.com/@miniliongalaxy" target="_blank" rel="noopener">▶ YouTube: @MiniLionGalaxy</a></li>
+            <li><a href="https://www.youtube.com/@miniliongalaxy?sub_confirmation=1" target="_blank" rel="noopener">🔔 Subscribe for new stories</a></li>
+          </ul>
+        </div>
+      </div>
+      <div class="footer-bottom">
+        <span>© <span data-year>2026</span> Mini Lion Galaxy. All rights reserved.</span>
+        <span>Website by <a href="https://pavithran.pages.dev/" target="_blank" rel="noopener">Pavithran</a></span>
+      </div>
+    </div>
+  </footer>
+
+  <script src="script.js?v=3"></script>
+</body>
+</html>

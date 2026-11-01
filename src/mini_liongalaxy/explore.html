@@ -1,0 +1,99 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="robots" content="noindex, nofollow">
+  <title>Explore Videos | Mini Lion Galaxy</title>
+  <meta name="description" content="Watch every Mini Lion Galaxy video: ABC stories, short stories, phonics songs and more.">
+  <meta name="theme-color" content="#120c35">
+  <link rel="icon" href="logo.jpg">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Baloo+2:wght@600;700;800&family=Nunito:wght@400;700;800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="style.css?v=4">
+</head>
+<body>
+  <a class="skip-link" href="#main">Skip to content</a>
+  <div class="starfield" aria-hidden="true"></div>
+
+  <header class="site-header">
+    <div class="wrap header-inner">
+      <a class="brand" href="./" aria-label="Mini Lion Galaxy home">
+        <img class="logo-img" src="logo.jpg" alt="" width="64" height="46">
+        <span>Mini Lion Galaxy</span>
+      </a>
+      <button class="menu-toggle" type="button" aria-expanded="false" aria-controls="main-nav" aria-label="Menu">☰</button>
+      <nav class="main-nav" id="main-nav" aria-label="Main">
+        <a href="./">Home</a>
+        <a href="explore.html" aria-current="page">Explore</a>
+        <a href="reach-out.html">Reach out</a>
+      </nav>
+    </div>
+  </header>
+
+  <main id="main">
+    <section class="section" style="padding-top:60px">
+      <div class="wrap">
+        <div class="page-banner" style="padding-top:0">
+          <span class="eyebrow">Our videos</span>
+          <h1>Blast off and <span>watch!</span></h1>
+          <p>Tap any video to play it. New stories land here automatically as soon as they're on our channel.</p>
+        </div>
+
+        <!-- Filled automatically from the YouTube channel (see functions/mini_liongalaxy/videos.js) -->
+        <div class="video-grid" id="video-grid" aria-live="polite"></div>
+        <div class="video-status" id="video-status">
+          <div class="loader" aria-hidden="true"><span></span><span></span><span></span></div>
+          <p>Loading videos from the galaxy…</p>
+        </div>
+
+        <div class="channel-cta">
+          <p>Never miss a new story!</p>
+          <a class="btn btn-pink" href="https://www.youtube.com/@miniliongalaxy?sub_confirmation=1" target="_blank" rel="noopener">🔔 Subscribe on YouTube</a>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <div class="player-modal" role="dialog" aria-modal="true" aria-label="Video player">
+    <div class="player-box">
+      <button class="player-close" type="button" aria-label="Close video">✕</button>
+      <div class="player-frame"></div>
+      <p class="player-title"></p>
+    </div>
+  </div>
+
+  <footer class="site-footer">
+    <div class="wrap">
+      <div class="footer-grid">
+        <div class="footer-brand">
+          <img class="logo-img" src="logo.jpg" alt="Mini Lion Galaxy" width="170" height="123" loading="lazy" style="height:auto">
+          <p>ABCs, short stories and fun learning for little stars. A new story every week!</p>
+        </div>
+        <div>
+          <h2>Explore</h2>
+          <ul class="footer-links">
+            <li><a href="./">Home</a></li>
+            <li><a href="explore.html">Videos</a></li>
+            <li><a href="reach-out.html">Reach out</a></li>
+          </ul>
+        </div>
+        <div>
+          <h2>Watch us on</h2>
+          <ul class="footer-links">
+            <li><a href="https://www.youtube.com/@miniliongalaxy" target="_blank" rel="noopener">▶ YouTube: @MiniLionGalaxy</a></li>
+            <li><a href="https://www.youtube.com/@miniliongalaxy?sub_confirmation=1" target="_blank" rel="noopener">🔔 Subscribe for new stories</a></li>
+          </ul>
+        </div>
+      </div>
+      <div class="footer-bottom">
+        <span>© <span data-year>2026</span> Mini Lion Galaxy. All rights reserved.</span>
+        <span>Website by <a href="https://pavithran.pages.dev/" target="_blank" rel="noopener">Pavithran</a></span>
+      </div>
+    </div>
+  </footer>
+
+  <script src="script.js?v=3"></script>
+</body>
+</html>

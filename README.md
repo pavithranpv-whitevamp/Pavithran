@@ -30,16 +30,6 @@ Every save goes to GitHub, and Cloudflare publishes the change on the live site 
 To change wording on the About or Contact page, edit `src/about-me/index.html` or `src/contact/index.html`
 on github.com (✏️ pencil icon → change the text → **Commit changes**).
 
-## Client / test sites
-
-Whole separate websites can live in their own folder inside `src/` and are published as-is:
-
-- `src/mini_liongalaxy/` → https://pavithran.pages.dev/mini_liongalaxy/
-  Its Explore page gets the YouTube channel's videos from `functions/mini_liongalaxy/videos.js`,
-  a Cloudflare Pages Function that replaced the old `videos.php` (re-checks the channel every 15 minutes).
-
-To add another one, put its files in `src/<folder-name>/` (use relative links like `style.css`, not `/style.css`).
-
 ## Contact form
 
 The form on the Contact page is sent by [FormSubmit](https://formsubmit.co) (free, no account) to

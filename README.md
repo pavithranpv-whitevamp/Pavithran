@@ -3,43 +3,39 @@
 Personal portfolio of **Pavithran**, Graphic Designer & Motion Graphics Video Editor.
 A plain HTML/CSS website hosted free on **Cloudflare Pages**, straight from this GitHub repo.
 
+## Adding and editing your work — the dashboard
+
+Go to **https://app.pagescms.org**, sign in with GitHub, and open this repo.
+
+- **My Works → Add an entry** to create a project: give it a title, pick a category, drop in a cover
+  and gallery images, or paste a YouTube link for a video. Click **Save**.
+- Click any project to change it; use the **…** menu to delete one.
+- **Media** shows every image on the site; you can upload or remove images there too.
+
+Every save goes to GitHub, and Cloudflare publishes the change on the live site in about a minute.
+
 ## How the site is organised
 
-| Page | File |
+| Folder / file | What it is |
 |---|---|
-| Home | `index.html` |
-| Portfolio | `portfolio/index.html` |
-| About Me | `about-me/index.html` |
-| Contact | `contact/index.html` |
-| Social Media Posters (project) | `work/social-media-posters/index.html` |
-| Thank-you page (after the contact form) | `thanks/index.html` |
-| Page not found | `404.html` |
+| `content/projects/` | One file per project — the dashboard writes these |
+| `images/` | Every picture on the site — the dashboard uploads here |
+| `src/` | Page templates: Home, Portfolio, About Me, Contact, thank-you and 404 pages |
+| `src/_project.html` | The layout every project page uses |
+| `src/assets/css/style.css` | Colours, fonts and layout (brand colours at the top) |
+| `src/assets/js/main.js` | Preloader, effects, mobile menu, portfolio filter, image viewer |
+| `build.js` | Turns all of the above into the finished website (in `dist/`) |
+| `.pages.yml` | Dashboard settings (which fields a project has, categories, etc.) |
 
-- `assets/css/style.css` — all colours, fonts and layout. Brand colours are at the top (section 1).
-- `assets/js/main.js` — preloader, mouse effects, mobile menu, image viewer, scroll animations.
-- `images/` — every picture the site uses.
-
-## How to edit the site (no software needed)
-
-1. Open this repo on github.com.
-2. Click the file you want to change (for example `about-me/index.html`), then the ✏️ pencil icon.
-3. Change the text between the tags, e.g. `<p>your text</p>`.
-4. Click **Commit changes**. Cloudflare publishes the update automatically in about a minute.
-
-**Add a picture:** open the `images` folder → **Add file → Upload files** → drop the image → **Commit changes**.
-Then use it in a page as `<img src="/images/your-file-name.jpg" alt="what it shows">`.
-
-**Add a new project:** copy the folder `work/social-media-posters/`, rename the copy (e.g. `work/logo-designs/`),
-change the title and images inside, then add a new card for it in `portfolio/index.html` and `index.html`
-(copy the existing `<a class="card ...">` block and change the link, image and title).
+To change wording on the About or Contact page, edit `src/about-me/index.html` or `src/contact/index.html`
+on github.com (✏️ pencil icon → change the text → **Commit changes**).
 
 ## Contact form
 
 The form on the Contact page is sent by [FormSubmit](https://formsubmit.co) (free, no account) to
-Pavithranwv@gmail.com. **The very first time** someone uses it, FormSubmit emails that address an
-activation link — click it once, and every message after that arrives normally.
+Pavithranwv@gmail.com.
 
 ## Hosting on Cloudflare Pages
 
-Cloudflare dashboard → **Workers & Pages → Create → Pages → Connect to Git** → pick this repo →
-Framework preset: **None**, Build command: *(leave empty)*, Build output directory: `/` → **Save and Deploy**.
+Cloudflare dashboard → **Workers & Pages → pavithran → Settings → Build**:
+Build command `node build.js`, Build output directory `dist`.

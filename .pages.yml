@@ -1,0 +1,62 @@
+# Dashboard settings for Pages CMS (https://app.pagescms.org).
+# It tells the dashboard what you can edit and where it is saved in this repo.
+
+media:
+  input: images
+  output: /images
+  categories: [image]
+  rename: safe
+
+content:
+  - name: projects
+    label: My Works
+    type: collection
+    path: content/projects
+    format: json
+    filename: "{primary}.json"
+    view: { primary: "title", sort: "date", order: "desc" }
+    fields:
+      - name: title
+        label: Project title
+        type: string
+        required: true
+        description: Shown on the card and at the top of the project page. Also becomes the page address.
+
+      - name: category
+        label: Category
+        type: select
+        description: Used for the filter buttons on the Portfolio page.
+        options:
+          values: [Graphic Design, Social Media Posters, Branding, Motion Graphics, Video Editing]
+
+      - name: date
+        label: Date
+        type: date
+        description: Newest projects are shown first.
+
+      - name: show_on_home
+        label: Show on the Home page
+        type: boolean
+        default: true
+        description: The Home page shows up to 6 of these (newest first). Every project always appears on the Portfolio page.
+
+      - name: cover
+        label: Cover image
+        type: image
+        description: The picture on the project card. Leave empty to use the first gallery image (or the YouTube thumbnail).
+
+      - name: images
+        label: Gallery images
+        type: image
+        list: true
+        description: All the images shown on the project page. Drag to reorder.
+
+      - name: youtube
+        label: YouTube link (for videos)
+        type: string
+        description: Paste a YouTube or YouTube Shorts link to show the video on the project page. Optional.
+
+      - name: description
+        label: Description
+        type: text
+        description: A few lines about the project, the client, or the tools you used. Optional. Leave a blank line between paragraphs.

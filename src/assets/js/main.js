@@ -119,6 +119,20 @@
 		});
 	}
 
+	// Portfolio category filter (all projects stay visible if JavaScript is off)
+	var buttons = document.querySelectorAll('[data-filter]');
+	var cards = document.querySelectorAll('.work-grid [data-cats]');
+	buttons.forEach(function (btn) {
+		btn.addEventListener('click', function () {
+			var f = btn.getAttribute('data-filter');
+			buttons.forEach(function (b) { b.setAttribute('aria-pressed', b === btn ? 'true' : 'false'); });
+			cards.forEach(function (c) {
+				c.hidden = !(f === 'all' || c.getAttribute('data-cats') === f);
+				if (!c.hidden) { c.classList.add('is-in'); }
+			});
+		});
+	});
+
 	// Project images: click to view large, with previous/next and Esc to close
 	var shots = Array.prototype.slice.call(document.querySelectorAll('.entry img'));
 	if (shots.length) {

@@ -3,5 +3,7 @@
   "category": "Video Editing",
   "date": "2026-11-01",
   "show_on_home": true,
-  "youtube": "https://youtu.be/jxrEKjZuLEo"
+  "youtube": [
+    "https://youtu.be/jxrEKjZuLEo"
+  ]
 }

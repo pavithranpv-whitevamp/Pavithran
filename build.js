@@ -57,8 +57,10 @@ const projects = (fs.existsSync(PROJECTS) ? fs.readdirSync(PROJECTS) : [])
     catch (e) { problems.push(`${f}: not valid JSON (${e.message}) - skipped`); return null; }
     if (!d || d.draft === true) return null;
     const images = asList(d.images);
-    const yt = youtubeId(d.youtube);
-    const cover = imgPath(d.cover) || images[0] || (yt ? `https://i.ytimg.com/vi/${yt}/hqdefault.jpg` : '');
+    // "youtube" can be one link or a list of links
+    const yts = (Array.isArray(d.youtube) ? d.youtube : [d.youtube])
+      .map((v) => youtubeId(v && typeof v === 'object' ? (v.link || v.url || '') : v)).filter(Boolean);
+    const cover = imgPath(d.cover) || images[0] || (yts[0] ? `https://i.ytimg.com/vi/${yts[0]}/hqdefault.jpg` : '');
     return {
       slug: slugify(f),
       title: String(d.title || slugify(f).replace(/-/g, ' ')).trim(),
@@ -66,7 +68,7 @@ const projects = (fs.existsSync(PROJECTS) ? fs.readdirSync(PROJECTS) : [])
       date: String(d.date || ''),
       home: d.show_on_home !== false,
       description: String(d.description || ''),
-      cover, images, yt,
+      cover, images, yts,
     };
   })
   .filter(Boolean)
@@ -95,7 +97,7 @@ ${cats.map((c) => `			<li><button type="button" data-filter="${catSlug(c)}" aria
 
 function projectBody(p, i) {
   const prev = projects[i - 1], next = projects[i + 1];
-  const video = p.yt ? `<div class="video"><iframe src="https://www.youtube-nocookie.com/embed/${p.yt}" title="${esc(p.title)}" loading="lazy" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowfullscreen></iframe></div>` : '';
+  const video = p.yts.map((id, n) => `<div class="video"><iframe src="https://www.youtube-nocookie.com/embed/${id}" title="${esc(p.title)}${p.yts.length > 1 ? ` — video ${n + 1}` : ''}" loading="lazy" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowfullscreen></iframe></div>`).join('\n\t\t\t');
   const gallery = p.images.length
     ? `<div class="gallery">\n${p.images.map((src, n) => `				<figure><img src="${esc(src)}" alt="${esc(p.title)} — image ${n + 1}" loading="${n < 3 ? 'eager' : 'lazy'}"></figure>`).join('\n')}\n			</div>`
     : '';

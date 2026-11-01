@@ -52,9 +52,10 @@ content:
         description: All the images shown on the project page. Drag to reorder.
 
       - name: youtube
-        label: YouTube link (for videos)
+        label: YouTube links (for videos)
         type: string
-        description: Paste a YouTube or YouTube Shorts link to show the video on the project page. Optional.
+        list: true
+        description: Paste one YouTube or Shorts link per box. Click "Add an item" for each extra video. Drag to reorder — the first video's thumbnail is used on the card if there's no cover image.
 
       - name: description
         label: Description

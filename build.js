@@ -143,12 +143,102 @@ fill('portfolio/index.html', {
 
 const tpl = fs.readFileSync(path.join(SRC, '_project.html'), 'utf8');
 projects.forEach((p, i) => {
-  const desc = (p.description.replace(/\s+/g, ' ').trim().slice(0, 155)) || `${p.title} by Pavithran, Graphic Designer & Motion Graphics Video Editor.`;
+  const desc = (p.description.replace(/\s+/g, ' ').trim().slice(0, 155)) || `${p.title}${p.category ? ` — ${p.category.toLowerCase()} work` : ''} by Pavithran, Graphic Designer & Motion Graphics Video Editor in Tirupur, Tamil Nadu.`;
   const html = tpl.split('{{TITLE}}').join(esc(p.title)).split('{{DESC}}').join(esc(desc)).split('{{PROJECT}}').join(projectBody(p, i));
   const dir = path.join(OUT, 'work', p.slug);
   fs.mkdirSync(dir, { recursive: true });
   fs.writeFileSync(path.join(dir, 'index.html'), html);
 });
+
+// ---------- SEO: canonical links, share previews, structured data, sitemap ----------
+const SITE = (process.env.SITE_URL || 'https://pavithran.pages.dev').replace(/\/+$/, '');
+const abs = (u) => (/^https?:\/\//.test(u) ? u : SITE + (u.startsWith('/') ? u : '/' + u));
+const PORTRAIT = '/images/21515369481-1024x1024.jpg';
+const SOCIALS = [
+  'https://www.linkedin.com/in/pavithran-e-wv9465445/',
+  'https://www.instagram.com/ig_whitevamp/',
+  'https://www.youtube.com/@pvkcreationz',
+];
+const person = {
+  '@type': 'Person',
+  '@id': SITE + '/#person',
+  name: 'Pavithran',
+  jobTitle: 'Graphic Designer & Motion Graphics Video Editor',
+  url: SITE + '/',
+  image: abs(PORTRAIT),
+  email: 'mailto:Pavithranwv@gmail.com',
+  address: { '@type': 'PostalAddress', addressLocality: 'Tirupur', addressRegion: 'Tamil Nadu', addressCountry: 'IN' },
+  knowsAbout: ['Graphic Design', 'Motion Graphics', 'Video Editing', 'Social Media Posters', 'Branding', 'Adobe Photoshop', 'Adobe Illustrator', 'Adobe Premiere Pro', 'Adobe After Effects'],
+  sameAs: SOCIALS,
+};
+const ldScript = (obj) => `<script type="application/ld+json">${JSON.stringify(obj).replace(/</g, '\\u003c')}</script>`;
+
+const NOINDEX = new Set(['/thanks/', '/404.html']);
+const today = new Date().toISOString().slice(0, 10);
+const pages = []; // for the sitemap
+
+function seo(file, urlPath, { image, ld, lastmod } = {}) {
+  const f = path.join(OUT, file);
+  let s = fs.readFileSync(f, 'utf8');
+  const url = SITE + urlPath;
+  const tags = [];
+  if (NOINDEX.has(urlPath)) {
+    tags.push('<meta name="robots" content="noindex">');
+  } else {
+    tags.push(`<link rel="canonical" href="${url}">`);
+    pages.push({ url, lastmod: lastmod || today });
+  }
+  tags.push(
+    `<meta property="og:url" content="${url}">`,
+    '<meta property="og:site_name" content="Pavithran">',
+    '<meta property="og:locale" content="en_IN">',
+    `<meta property="og:image" content="${esc(abs(image || PORTRAIT))}">`,
+    '<meta name="twitter:card" content="summary_large_image">',
+    '<meta name="theme-color" content="#163B58">',
+  );
+  if (ld) tags.push(ldScript({ '@context': 'https://schema.org', '@graph': ld }));
+  s = s.replace('</head>', tags.join('\n') + '\n</head>');
+  fs.writeFileSync(f, s);
+}
+
+seo('index.html', '/', {
+  ld: [person, { '@type': 'WebSite', '@id': SITE + '/#website', url: SITE + '/', name: 'Pavithran', publisher: { '@id': SITE + '/#person' } }],
+  lastmod: projects[0] ? projects[0].date : today,
+});
+seo('portfolio/index.html', '/portfolio/', {
+  lastmod: projects[0] ? projects[0].date : today,
+  ld: [{
+    '@type': 'CollectionPage', url: SITE + '/portfolio/', name: 'Portfolio – Pavithran', author: { '@id': SITE + '/#person' },
+    hasPart: projects.map((p) => ({ '@type': 'CreativeWork', name: p.title, url: `${SITE}/work/${p.slug}/` })),
+  }, person],
+});
+seo('about-me/index.html', '/about-me/', { ld: [{ '@type': 'ProfilePage', url: SITE + '/about-me/', mainEntity: { '@id': SITE + '/#person' } }, person] });
+seo('contact/index.html', '/contact/', { ld: [{ '@type': 'ContactPage', url: SITE + '/contact/', about: { '@id': SITE + '/#person' } }, person] });
+seo('thanks/index.html', '/thanks/');
+seo('404.html', '/404.html');
+for (const p of projects) {
+  seo(`work/${p.slug}/index.html`, `/work/${p.slug}/`, {
+    image: p.cover || PORTRAIT,
+    lastmod: p.date || today,
+    ld: [{
+      '@type': 'CreativeWork',
+      name: p.title,
+      url: `${SITE}/work/${p.slug}/`,
+      ...(p.cover ? { image: abs(p.cover) } : {}),
+      ...(p.category ? { genre: p.category } : {}),
+      ...(p.date ? { dateCreated: p.date } : {}),
+      ...(p.description ? { description: p.description.replace(/\s+/g, ' ').trim() } : {}),
+      ...(p.yts.length ? { video: p.yts.map((id) => ({ '@type': 'VideoObject', name: p.title, embedUrl: `https://www.youtube.com/embed/${id}`, contentUrl: `https://www.youtube.com/watch?v=${id}`, thumbnailUrl: `https://i.ytimg.com/vi/${id}/hqdefault.jpg`, ...(p.date ? { uploadDate: p.date } : {}), description: p.description ? p.description.replace(/\s+/g, ' ').trim() : `${p.title} by Pavithran` })) } : {}),
+      creator: { '@id': SITE + '/#person' },
+    }, person],
+  });
+}
+
+fs.writeFileSync(path.join(OUT, 'sitemap.xml'),
+  '<?xml version="1.0" encoding="UTF-8"?>\n<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">\n' +
+  pages.map((p) => `  <url><loc>${p.url}</loc><lastmod>${/^\d{4}-\d{2}-\d{2}$/.test(p.lastmod) ? p.lastmod : today}</lastmod></url>`).join('\n') +
+  '\n</urlset>\n');
+fs.writeFileSync(path.join(OUT, 'robots.txt'), `User-agent: *\nAllow: /\n\nSitemap: ${SITE}/sitemap.xml\n`);
 
 // ---------- report ----------
 const missing = [];

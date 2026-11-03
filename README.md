@@ -30,6 +30,23 @@ Changing the password logs out every device. When the GitHub token expires, crea
 
 The older Pages CMS dashboard (`.pages.yml`, app.pagescms.org) still works too, if you ever want it.
 
+## Private Vault — your secret files
+
+**https://pavithran.pages.dev/admin/vault/** is a private folder for your scripts, plugins and other
+files. It uses the same username and password as the admin page. Upload (drag-and-drop works),
+sort into folders, rename, download and delete — up to 25 MB per file.
+
+The files are **not** stored in this GitHub repo (the repo is public). They live in Cloudflare KV storage,
+which only the vault can read. One-time setup:
+
+1. Cloudflare → **Storage & Databases → KV → Create** a namespace called `pavithran-vault`.
+2. **Workers & Pages → pavithran → Settings → Bindings → Add → KV namespace**:
+   Variable name `VAULT`, namespace `pavithran-vault` → Save.
+3. Deployments → latest → ⋯ → **Retry deployment**.
+
+Files: `src/admin/vault/index.html` (the page) and `functions/admin/vault-api/[[path]].js` (its back end).
+Cloudflare's free plan allows about 1,000 uploads/renames per day and 1 GB of storage.
+
 ## How the site is organised
 
 | Folder / file | What it is |
@@ -42,7 +59,7 @@ The older Pages CMS dashboard (`.pages.yml`, app.pagescms.org) still works too, 
 | `src/assets/js/main.js` | Preloader, effects, mobile menu, portfolio filter, image viewer |
 | `build.js` | Turns all of the above into the finished website (in `dist/`) |
 | `.pages.yml` | Settings for the older Pages CMS dashboard |
-| `src/admin/`, `functions/admin/` | The admin page and its back end |
+| `src/admin/`, `functions/admin/` | The admin page, the private vault, and their back ends |
 
 To change wording on the About or Contact page, edit `src/about-me/index.html` or `src/contact/index.html`
 on github.com (✏️ pencil icon → change the text → **Commit changes**).

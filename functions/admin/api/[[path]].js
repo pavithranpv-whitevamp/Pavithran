@@ -151,9 +151,14 @@ function normaliseProject(input) {
   let cover = String(input.cover || '').trim();
   if (!IMAGE_PATH_RE.test(cover)) cover = '';
   const date = /^\d{4}-\d{2}-\d{2}$/.test(String(input.date || '')) ? input.date : new Date().toISOString().slice(0, 10);
+  // Main category first, then any extra ones (no duplicates, ignoring capitals).
+  const categories = [input.category, ...(Array.isArray(input.categories) ? input.categories : [])]
+    .map((c) => clean(c, 60)).filter(Boolean)
+    .filter((c, i, a) => a.findIndex((x) => x.toLowerCase() === c.toLowerCase()) === i).slice(0, 12);
   return {
     title: clean(input.title, 120),
-    category: clean(input.category, 60),
+    category: categories[0] || '',
+    categories,
     date,
     show_on_home: input.show_on_home !== false,
     cover,
@@ -171,6 +176,8 @@ function parseProjectFile(name, text) {
     slug: name.replace(/\.json$/, ''),
     title: d.title || name.replace(/\.json$/, ''),
     category: d.category || '',
+    categories: [d.category, ...(Array.isArray(d.categories) ? d.categories : [])].map((c) => String(c || '').trim()).filter(Boolean)
+      .filter((c, i, a) => a.findIndex((x) => x.toLowerCase() === c.toLowerCase()) === i),
     date: d.date || '',
     show_on_home: d.show_on_home !== false,
     cover: d.cover ? '/' + String(d.cover).replace(/^\/+/, '') : '',

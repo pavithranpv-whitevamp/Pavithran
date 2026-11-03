@@ -10,6 +10,8 @@ username and password. You stay logged in on that device for 30 days.
 
 - **+ Add new work**: title, category, photos (straight from your gallery), YouTube links,
   description → **Publish**. The site updates about a minute later.
+- **Main category** is the tag on the project's card. **Also show it under** adds extra categories:
+  the project then also appears under those filters on the Portfolio page, tagged with that category.
 - Tap a project to edit it, or scroll to the bottom to delete it.
 - Large photos are shrunk automatically before upload.
 

@@ -64,7 +64,13 @@ const projects = (fs.existsSync(PROJECTS) ? fs.readdirSync(PROJECTS) : [])
     return {
       slug: slugify(f),
       title: String(d.title || slugify(f).replace(/-/g, ' ')).trim(),
-      category: String(d.category || '').trim(),
+      // "category" is the main one; "categories" can add more (the project then shows up under each)
+      ...(() => {
+        const list = [d.category, ...(Array.isArray(d.categories) ? d.categories : [])]
+          .map((c) => String(c || '').trim()).filter(Boolean)
+          .filter((c, i, a) => a.findIndex((x) => x.toLowerCase() === c.toLowerCase()) === i);
+        return { category: list[0] || '', categories: list };
+      })(),
       date: String(d.date || ''),
       home: d.show_on_home !== false,
       description: String(d.description || ''),
@@ -77,7 +83,7 @@ const projects = (fs.existsSync(PROJECTS) ? fs.readdirSync(PROJECTS) : [])
 // ---------- pieces of HTML ----------
 const catSlug = (c) => slugify(c || 'other');
 
-const card = (p) => `<a class="card reveal" href="/work/${p.slug}/" data-cats="${catSlug(p.category)}">
+const card = (p) => `<a class="card reveal" href="/work/${p.slug}/" data-cats="${p.categories.map(catSlug).join(' ')}"${p.category ? ` data-main="${esc(p.category)}"` : ''}>
 	<div class="card-media">
 		${p.cover ? `<img src="${esc(p.cover)}" alt="${esc(p.title)}" loading="lazy">` : `<span class="card-ph" aria-hidden="true">${esc(p.title.charAt(0))}</span>`}
 		<span class="card-arrow" aria-hidden="true">&nearr;</span>
@@ -87,7 +93,8 @@ const card = (p) => `<a class="card reveal" href="/work/${p.slug}/" data-cats="$
 
 const empty = `<div class="empty"><span class="eyebrow">Coming soon</span><p>New work is on its way.</p></div>`;
 
-const cats = [...new Set(projects.map((p) => p.category).filter(Boolean))];
+const cats = [];
+for (const p of projects) for (const c of p.categories) if (!cats.some((x) => catSlug(x) === catSlug(c))) cats.push(c);
 const filters = cats.length > 1
   ? `<ul class="filters" aria-label="Filter projects">
 			<li><button type="button" data-filter="all" aria-pressed="true">All</button></li>
@@ -103,7 +110,7 @@ function projectBody(p, i) {
     : '';
   return `	<header class="page-head">
 		<div class="wrap">
-			${p.category ? `<span class="eyebrow">${esc(p.category)}</span>` : ''}
+			${p.categories.length ? `<span class="eyebrow">${p.categories.map(esc).join(' &middot; ')}</span>` : ''}
 			<h1>${esc(p.title)}</h1>
 			${p.description ? `<div class="project-desc">${paragraphs(p.description)}</div>` : ''}
 		</div>
@@ -225,7 +232,7 @@ for (const p of projects) {
       name: p.title,
       url: `${SITE}/work/${p.slug}/`,
       ...(p.cover ? { image: abs(p.cover) } : {}),
-      ...(p.category ? { genre: p.category } : {}),
+      ...(p.categories.length ? { genre: p.categories.length > 1 ? p.categories : p.categories[0] } : {}),
       ...(p.date ? { dateCreated: p.date } : {}),
       ...(p.description ? { description: p.description.replace(/\s+/g, ' ').trim() } : {}),
       ...(p.yts.length ? { video: p.yts.map((id) => ({ '@type': 'VideoObject', name: p.title, embedUrl: `https://www.youtube.com/embed/${id}`, contentUrl: `https://www.youtube.com/watch?v=${id}`, thumbnailUrl: `https://i.ytimg.com/vi/${id}/hqdefault.jpg`, ...(p.date ? { uploadDate: p.date } : {}), description: p.description ? p.description.replace(/\s+/g, ' ').trim() : `${p.title} by Pavithran` })) } : {}),

@@ -126,9 +126,14 @@
 		btn.addEventListener('click', function () {
 			var f = btn.getAttribute('data-filter');
 			buttons.forEach(function (b) { b.setAttribute('aria-pressed', b === btn ? 'true' : 'false'); });
+			var label = btn.textContent;
 			cards.forEach(function (c) {
-				c.hidden = !(f === 'all' || c.getAttribute('data-cats') === f);
+				var list = (c.getAttribute('data-cats') || '').split(' ');
+				c.hidden = !(f === 'all' || list.indexOf(f) !== -1);
 				if (!c.hidden) { c.classList.add('is-in'); }
+				// The tag shows the category you're looking at; "All" shows the main one.
+				var tag = c.querySelector('.card-cat');
+				if (tag) { tag.textContent = f === 'all' ? (c.getAttribute('data-main') || tag.textContent) : label; }
 			});
 		});
 	});

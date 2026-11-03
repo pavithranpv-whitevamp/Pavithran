@@ -29,6 +29,12 @@ content:
         options:
           values: [Graphic Design, Social Media Posters, Branding, Motion Graphics, Video Editing]
 
+      - name: categories
+        label: Also show under (extra categories)
+        type: string
+        list: true
+        description: Optional. Extra categories this project also appears under on the Portfolio page.
+
       - name: date
         label: Date
         type: date

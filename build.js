@@ -238,7 +238,7 @@ fs.writeFileSync(path.join(OUT, 'sitemap.xml'),
   '<?xml version="1.0" encoding="UTF-8"?>\n<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">\n' +
   pages.map((p) => `  <url><loc>${p.url}</loc><lastmod>${/^\d{4}-\d{2}-\d{2}$/.test(p.lastmod) ? p.lastmod : today}</lastmod></url>`).join('\n') +
   '\n</urlset>\n');
-fs.writeFileSync(path.join(OUT, 'robots.txt'), `User-agent: *\nAllow: /\n\nSitemap: ${SITE}/sitemap.xml\n`);
+fs.writeFileSync(path.join(OUT, 'robots.txt'), `User-agent: *\nAllow: /\nDisallow: /admin/\n\nSitemap: ${SITE}/sitemap.xml\n`);
 
 // ---------- report ----------
 const missing = [];

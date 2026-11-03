@@ -1,0 +1,628 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="robots" content="noindex, nofollow">
+<title>Admin &ndash; Pavithran</title>
+<meta name="theme-color" content="#163B58">
+<link rel="icon" href="/images/cropped-Site-Icon-New-1-32x32.png" sizes="32x32">
+<link rel="apple-touch-icon" href="/images/cropped-Site-Icon-New-1-180x180.png">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=Plus+Jakarta+Sans:wght@600;700;800&display=swap">
+<style>
+:root {
+	--navy: #163B58; --navy-deep: #0F2C43; --gold: #F2AB01; --paper: #F5F5F5; --surface: #FFFFFF;
+	--mist: #E6ECF1; --line: rgba(22, 59, 88, .16); --text: #2b2b2b; --muted: #5d6b78;
+	--danger: #b3261e; --ok: #1d7a46;
+	--r: 16px; --r-lg: 24px; --pill: 999px;
+	--display: "Plus Jakarta Sans", system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+	--body: "Inter", system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+}
+*, *::before, *::after { box-sizing: border-box; }
+html { -webkit-text-size-adjust: 100%; scroll-padding-bottom: 110px; /* keep focused fields and buttons above the Publish bar */ }
+body { margin: 0; background: var(--paper); color: var(--text); font: 400 16px/1.5 var(--body); min-height: 100vh; }
+button, input, select, textarea { font: inherit; color: inherit; }
+img { display: block; max-width: 100%; }
+[hidden] { display: none !important; }
+a { color: var(--navy); }
+
+.wrap { width: 100%; max-width: 760px; margin: 0 auto; padding: 0 16px; }
+.top { position: sticky; top: 0; z-index: 10; background: var(--navy); color: #fff; padding-top: env(safe-area-inset-top); }
+.top .wrap { display: flex; align-items: center; gap: 12px; min-height: 60px; }
+.top h1 { font: 800 1.15rem/1.1 var(--display); margin: 0; flex: 1; letter-spacing: -.01em; }
+.top a, .top button.link { color: #fff; font: 600 .85rem/1 var(--display); text-decoration: none; background: rgba(255,255,255,.12); border: 0; padding: 10px 14px; border-radius: var(--pill); cursor: pointer; }
+.top a:hover, .top button.link:hover { background: rgba(255,255,255,.22); }
+
+main.wrap { padding-top: 20px; padding-bottom: calc(140px + env(safe-area-inset-bottom)); }
+h2 { font: 800 1.5rem/1.15 var(--display); color: var(--navy); margin: 0 0 4px; letter-spacing: -.02em; }
+.sub { color: var(--muted); margin: 0 0 20px; }
+
+.btn { display: inline-flex; align-items: center; justify-content: center; gap: 8px; min-height: 48px; padding: 0 22px; border-radius: var(--pill); border: 2px solid var(--navy); background: var(--navy); color: #fff; font: 700 .95rem/1 var(--display); cursor: pointer; text-decoration: none; }
+.btn:disabled { opacity: .55; cursor: progress; }
+.btn--gold { background: var(--gold); border-color: var(--gold); color: var(--navy); }
+.btn--ghost { background: transparent; color: var(--navy); }
+.btn--danger { background: transparent; color: var(--danger); border-color: var(--danger); }
+.btn--block { width: 100%; }
+:focus-visible { outline: 3px solid var(--gold); outline-offset: 2px; }
+
+/* Login */
+.login { min-height: 100vh; display: grid; place-items: center; padding: 24px 16px; background: var(--navy); }
+.login-card { width: 100%; max-width: 380px; background: var(--surface); border-radius: var(--r-lg); padding: 32px 24px 28px; box-shadow: 0 24px 48px -20px rgba(0,0,0,.45); }
+.login-card .logo { width: 64px; height: 64px; border-radius: 50%; background: var(--mist); display: grid; place-items: center; margin: 0 auto 14px; overflow: hidden; }
+.login-card .logo img { width: 42px; height: 42px; object-fit: contain; }
+.login-card h2 { text-align: center; }
+.login-card .sub { text-align: center; }
+
+/* Forms */
+.field { margin-bottom: 18px; }
+.field > label, .label { display: block; font: 700 .9rem/1.2 var(--display); color: var(--navy); margin-bottom: 8px; }
+.hint { display: block; font-size: .85rem; color: var(--muted); margin-top: 6px; }
+input[type=text], input[type=password], input[type=url], input[type=date], select, textarea {
+	width: 100%; min-height: 48px; padding: 12px 14px; background: var(--surface); border: 1.5px solid var(--line); border-radius: 12px; font-size: 16px;
+}
+input:focus, select:focus, textarea:focus { outline: none; border-color: var(--navy); box-shadow: 0 0 0 3px rgba(242,171,1,.35); }
+textarea { min-height: 120px; resize: vertical; }
+.panel { background: var(--surface); border: 1px solid var(--line); border-radius: var(--r-lg); padding: 20px 16px; margin-bottom: 16px; }
+
+.msg { border-radius: 12px; padding: 12px 14px; margin: 0 0 16px; font-size: .95rem; }
+.msg--error { background: #fdecea; color: var(--danger); }
+.msg--ok { background: #e7f5ec; color: var(--ok); }
+.msg--info { background: var(--mist); color: var(--navy); }
+
+/* Project list */
+.list-head { display: flex; align-items: flex-end; justify-content: space-between; gap: 12px; flex-wrap: wrap; margin-bottom: 18px; }
+.projects { list-style: none; margin: 0; padding: 0; display: grid; gap: 12px; }
+.proj { display: flex; align-items: center; gap: 14px; background: var(--surface); border: 1px solid var(--line); border-radius: var(--r); padding: 10px; cursor: pointer; text-align: left; width: 100%; }
+.proj:hover { border-color: var(--navy); }
+.proj .thumb { flex: none; width: 72px; height: 72px; border-radius: 12px; background: var(--navy) center/cover no-repeat; display: grid; place-items: center; color: #fff; font: 800 1.6rem/1 var(--display); }
+.proj .info { flex: 1; min-width: 0; }
+.proj .t { font: 700 1.02rem/1.25 var(--display); color: var(--navy); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.proj .m { font-size: .85rem; color: var(--muted); margin-top: 3px; }
+.chip { display: inline-block; font: 700 .68rem/1 var(--display); letter-spacing: .08em; text-transform: uppercase; background: var(--gold); color: var(--navy); padding: 5px 8px; border-radius: var(--pill); margin-right: 6px; }
+.proj .go { flex: none; color: var(--navy); font: 700 .85rem/1 var(--display); padding: 0 6px; }
+.empty { text-align: center; padding: 40px 16px; border: 2px dashed var(--line); border-radius: var(--r-lg); color: var(--muted); }
+
+/* Photos */
+.photos { display: grid; grid-template-columns: repeat(auto-fill, minmax(140px, 1fr)); gap: 10px; margin-bottom: 12px; }
+.photo { position: relative; border-radius: 14px; overflow: hidden; background: var(--mist); aspect-ratio: 1; border: 3px solid transparent; }
+.photo.is-cover { border-color: var(--gold); }
+.photo img { width: 100%; height: 100%; object-fit: cover; }
+.photo .badge { position: absolute; left: 6px; top: 6px; background: var(--gold); color: var(--navy); font: 800 .65rem/1 var(--display); letter-spacing: .08em; text-transform: uppercase; padding: 5px 7px; border-radius: var(--pill); }
+.photo .tools { position: absolute; left: 0; right: 0; bottom: 0; display: flex; justify-content: space-between; gap: 4px; padding: 6px; background: linear-gradient(to top, rgba(15,44,67,.85), rgba(15,44,67,0)); }
+.photo .tools button { flex: 1; min-height: 36px; border: 0; border-radius: 10px; background: rgba(255,255,255,.92); color: var(--navy); font: 700 .95rem/1 var(--display); cursor: pointer; }
+.photo .tools button.rm { color: var(--danger); }
+.photo .tools button:disabled { opacity: .35; }
+.add-photos { display: flex; align-items: center; justify-content: center; gap: 10px; min-height: 56px; border: 2px dashed var(--navy); border-radius: 14px; background: var(--mist); color: var(--navy); font: 700 1rem/1 var(--display); cursor: pointer; width: 100%; }
+.add-photos input { display: none; }
+
+/* YouTube rows */
+.yt-row { display: flex; gap: 8px; margin-bottom: 10px; }
+.yt-row input { flex: 1; }
+.icon-btn { flex: none; width: 48px; min-height: 48px; border-radius: 12px; border: 1.5px solid var(--line); background: var(--surface); color: var(--danger); font: 700 1.1rem/1 var(--display); cursor: pointer; }
+.add-link { background: none; border: 0; color: var(--navy); font: 700 .95rem/1 var(--display); padding: 10px 0; cursor: pointer; }
+
+.switch { display: flex; align-items: center; justify-content: space-between; gap: 16px; }
+.switch input { width: 52px; height: 30px; appearance: none; background: #c8d1da; border-radius: 99px; position: relative; cursor: pointer; transition: background .2s; flex: none; }
+.switch input::after { content: ""; position: absolute; top: 3px; left: 3px; width: 24px; height: 24px; border-radius: 50%; background: #fff; transition: transform .2s; box-shadow: 0 1px 3px rgba(0,0,0,.25); }
+.switch input:checked { background: var(--navy); }
+.switch input:checked::after { transform: translateX(22px); }
+
+.bar { position: fixed; left: 0; right: 0; bottom: 0; z-index: 20; background: rgba(245,245,245,.96); border-top: 1px solid var(--line); padding: 12px 0 calc(12px + env(safe-area-inset-bottom)); backdrop-filter: blur(6px); }
+.bar .wrap { display: flex; gap: 10px; align-items: center; }
+.bar .status { flex: 1; font-size: .9rem; color: var(--navy); min-width: 0; }
+
+.done { text-align: center; padding: 40px 8px; }
+.done .tick { width: 72px; height: 72px; border-radius: 50%; background: var(--gold); color: var(--navy); display: grid; place-items: center; font: 800 2.2rem/1 var(--display); margin: 0 auto 16px; }
+.done .btns { display: grid; gap: 10px; max-width: 320px; margin: 24px auto 0; }
+.danger-zone { margin-top: 28px; text-align: center; }
+.danger-zone .btn { scroll-margin-bottom: 120px; }
+.loading { text-align: center; color: var(--muted); padding: 40px 0; }
+</style>
+</head>
+<body>
+
+<!-- ============ LOGIN ============ -->
+<section class="login" id="v-login" hidden>
+	<form class="login-card" id="login-form" autocomplete="on">
+		<div class="logo"><img src="/images/cropped-Site-Icon-New-1-192x192.png" alt=""></div>
+		<h2>Website admin</h2>
+		<p class="sub">Log in to add or edit your work.</p>
+		<p class="msg msg--error" id="login-error" hidden></p>
+		<div class="field">
+			<label for="l-user">Username</label>
+			<input type="text" id="l-user" name="username" autocomplete="username" autocapitalize="none" spellcheck="false" required>
+		</div>
+		<div class="field">
+			<label for="l-pass">Password</label>
+			<input type="password" id="l-pass" name="password" autocomplete="current-password" required>
+		</div>
+		<button class="btn btn--gold btn--block" type="submit" id="login-btn">Log in</button>
+		<p class="hint" style="text-align:center;margin-top:14px">You stay logged in on this device for 30 days.</p>
+	</form>
+</section>
+
+<!-- ============ APP ============ -->
+<div id="v-app" hidden>
+	<header class="top">
+		<div class="wrap">
+			<h1>My Works</h1>
+			<a href="/" target="_blank" rel="noopener">View site</a>
+			<button class="link" type="button" id="logout-btn">Log out</button>
+		</div>
+	</header>
+
+	<main class="wrap">
+		<!-- List -->
+		<section id="v-list">
+			<div class="list-head">
+				<div>
+					<h2>Your projects</h2>
+					<p class="sub" style="margin:0">Tap a project to edit it.</p>
+				</div>
+				<button class="btn btn--gold" type="button" id="new-btn">+ Add new work</button>
+			</div>
+			<p class="msg" id="list-msg" hidden></p>
+			<div class="loading" id="list-loading">Loading your projects&hellip;</div>
+			<ul class="projects" id="projects"></ul>
+		</section>
+
+		<!-- Editor -->
+		<section id="v-edit" hidden>
+			<button class="add-link" type="button" id="back-btn">&larr; Back to all projects</button>
+			<h2 id="edit-title">Add new work</h2>
+			<p class="sub" id="edit-sub">Fill in the details and press Publish.</p>
+			<p class="msg msg--error" id="edit-error" hidden></p>
+
+			<form id="edit-form" novalidate>
+				<div class="panel">
+					<div class="field">
+						<label for="f-title">Project title</label>
+						<input type="text" id="f-title" maxlength="120" placeholder="e.g. Restaurant Menu Posters" required>
+					</div>
+					<div class="field">
+						<label for="f-cat">Category</label>
+						<select id="f-cat"></select>
+						<input type="text" id="f-cat-new" maxlength="60" placeholder="Type the new category name" style="margin-top:8px" hidden>
+					</div>
+				</div>
+
+				<div class="panel">
+					<span class="label">Photos</span>
+					<div class="photos" id="photos"></div>
+					<label class="add-photos">
+						<input type="file" id="f-files" accept="image/*" multiple>
+						<span>📷 Add photos</span>
+					</label>
+					<span class="hint">Choose from your gallery or take a photo. The <b>gold</b> one is the cover shown on the card &mdash; tap ★ to change it. Large photos are resized automatically.</span>
+				</div>
+
+				<div class="panel">
+					<span class="label">YouTube videos</span>
+					<div id="yt-list"></div>
+					<button class="add-link" type="button" id="yt-add">+ Add a video link</button>
+					<span class="hint">Paste a YouTube or Shorts link (Share &rarr; Copy link). The video must be Public or Unlisted.</span>
+				</div>
+
+				<div class="panel">
+					<div class="field">
+						<label for="f-desc">Description <span style="font-weight:500;color:var(--muted)">(optional)</span></label>
+						<textarea id="f-desc" maxlength="5000" placeholder="A few lines about the project, the client, or the tools you used."></textarea>
+					</div>
+					<div class="field">
+						<label for="f-date">Date</label>
+						<input type="date" id="f-date">
+						<span class="hint">Newest projects are shown first.</span>
+					</div>
+					<div class="switch">
+						<label for="f-home" style="margin:0"><span class="label" style="margin:0">Show on the Home page</span><span class="hint" style="margin-top:2px">Home shows the 6 newest of these.</span></label>
+						<input type="checkbox" id="f-home" checked>
+					</div>
+				</div>
+
+				<div class="danger-zone" id="delete-zone" hidden>
+					<button class="btn btn--danger" type="button" id="delete-btn">Delete this project</button>
+				</div>
+			</form>
+		</section>
+
+		<!-- Done -->
+		<section id="v-done" hidden>
+			<div class="done">
+				<div class="tick">✓</div>
+				<h2 id="done-title">Published!</h2>
+				<p class="sub" id="done-sub">Your website updates in about a minute.</p>
+				<div class="btns">
+					<a class="btn btn--gold" id="done-view" href="/" target="_blank" rel="noopener">View it on the site</a>
+					<button class="btn btn--ghost" type="button" id="done-back">Back to my projects</button>
+				</div>
+			</div>
+		</section>
+	</main>
+
+	<div class="bar" id="edit-bar" hidden>
+		<div class="wrap">
+			<div class="status" id="status" aria-live="polite"></div>
+			<button class="btn btn--gold" type="button" id="publish-btn">Publish</button>
+		</div>
+	</div>
+</div>
+
+<script>
+(function () {
+	'use strict';
+
+	var CATEGORIES = ['Graphic Design', 'Social Media Posters', 'Branding', 'Motion Graphics', 'Video Editing'];
+	var NEW_CAT = '__new__';
+	var $ = function (id) { return document.getElementById(id); };
+
+	var state = { projects: [], editing: null, items: [], coverKey: null, extraCover: '', dirty: false, busy: false };
+	var keySeq = 0;
+
+	// ---------- API ----------
+	function api(path, body) {
+		return fetch('/admin/api/' + path, {
+			method: body ? 'POST' : 'GET',
+			headers: body ? { 'Content-Type': 'application/json' } : {},
+			body: body ? JSON.stringify(body) : undefined,
+			credentials: 'same-origin'
+		}).then(function (r) {
+			return r.json().catch(function () { return {}; }).then(function (d) {
+				if (r.status === 401 && path !== 'login') { showLogin(); throw new Error(d.error || 'Please log in again.'); }
+				if (!r.ok) throw new Error(d.error || ('Something went wrong (' + r.status + ').'));
+				return d;
+			});
+		});
+	}
+
+	// ---------- views ----------
+	function show(view) {
+		['v-list', 'v-edit', 'v-done'].forEach(function (v) { $(v).hidden = v !== view; });
+		$('edit-bar').hidden = view !== 'v-edit';
+		window.scrollTo(0, 0);
+	}
+	function showLogin(msg) {
+		$('v-app').hidden = true; $('v-login').hidden = false;
+		if (msg) { $('login-error').textContent = msg; $('login-error').hidden = false; }
+		setTimeout(function () { $('l-user').focus(); }, 50);
+	}
+	function showApp() { $('v-login').hidden = true; $('v-app').hidden = false; loadProjects(); show('v-list'); }
+	function msg(el, text, kind) { el.textContent = text || ''; el.className = 'msg msg--' + (kind || 'error'); el.hidden = !text; }
+
+	// ---------- login ----------
+	$('login-form').addEventListener('submit', function (e) {
+		e.preventDefault();
+		var btn = $('login-btn');
+		btn.disabled = true; btn.textContent = 'Logging in…';
+		$('login-error').hidden = true;
+		api('login', { username: $('l-user').value.trim(), password: $('l-pass').value })
+			.then(function () { $('l-pass').value = ''; showApp(); })
+			.catch(function (err) { $('login-error').textContent = err.message; $('login-error').hidden = false; })
+			.then(function () { btn.disabled = false; btn.textContent = 'Log in'; });
+	});
+	$('logout-btn').addEventListener('click', function () {
+		if (state.dirty && !confirm('You have unsaved changes. Log out anyway?')) return;
+		api('logout', {}).catch(function () {}).then(function () { state.dirty = false; showLogin(); });
+	});
+
+	// ---------- list ----------
+	function loadProjects() {
+		$('list-loading').hidden = false; $('projects').innerHTML = ''; msg($('list-msg'));
+		return api('projects').then(function (d) {
+			state.projects = d.projects || [];
+			renderList();
+		}).catch(function (err) { msg($('list-msg'), err.message); })
+			.then(function () { $('list-loading').hidden = true; });
+	}
+	function thumbFor(p) {
+		if (p.cover) return p.cover;
+		if (p.images && p.images[0]) return p.images[0];
+		var id = ytId(p.youtube && p.youtube[0]);
+		return id ? 'https://i.ytimg.com/vi/' + id + '/hqdefault.jpg' : '';
+	}
+	function renderList() {
+		var ul = $('projects'); ul.innerHTML = '';
+		if (!state.projects.length) {
+			ul.innerHTML = '<li class="empty">No projects yet. Tap <b>+ Add new work</b> to add your first one.</li>';
+			return;
+		}
+		state.projects.forEach(function (p) {
+			var li = document.createElement('li');
+			var b = document.createElement('button');
+			b.type = 'button'; b.className = 'proj';
+			var t = document.createElement('span'); t.className = 'thumb';
+			var src = thumbFor(p);
+			if (src) t.style.backgroundImage = 'url("' + src.replace(/"/g, '%22') + '")'; else t.textContent = (p.title || '?').charAt(0).toUpperCase();
+			var info = document.createElement('span'); info.className = 'info';
+			var tt = document.createElement('span'); tt.className = 't'; tt.textContent = p.title;
+			var m = document.createElement('span'); m.className = 'm';
+			if (p.category) { var c = document.createElement('span'); c.className = 'chip'; c.textContent = p.category; m.appendChild(c); }
+			var bits = [];
+			if (p.images.length) bits.push(p.images.length + (p.images.length === 1 ? ' photo' : ' photos'));
+			if (p.youtube.length) bits.push(p.youtube.length + (p.youtube.length === 1 ? ' video' : ' videos'));
+			if (!p.show_on_home) bits.push('not on Home');
+			m.appendChild(document.createTextNode(bits.join(' · ')));
+			info.appendChild(tt); info.appendChild(m);
+			var go = document.createElement('span'); go.className = 'go'; go.textContent = 'Edit ›';
+			b.appendChild(t); b.appendChild(info); b.appendChild(go);
+			b.addEventListener('click', function () { openEditor(p); });
+			li.appendChild(b); ul.appendChild(li);
+		});
+	}
+	$('new-btn').addEventListener('click', function () { openEditor(null); });
+
+	// ---------- editor ----------
+	function ytId(u) {
+		var m = String(u || '').match(/(?:youtu\.be\/|youtube\.com\/(?:watch\?(?:.*&)?v=|shorts\/|embed\/|live\/))([A-Za-z0-9_-]{6,})/);
+		return m ? m[1] : '';
+	}
+	function fillCategories(current) {
+		var sel = $('f-cat'); sel.innerHTML = '';
+		var cats = CATEGORIES.slice();
+		state.projects.forEach(function (p) { if (p.category && cats.indexOf(p.category) < 0) cats.push(p.category); });
+		if (current && cats.indexOf(current) < 0) cats.push(current);
+		var none = document.createElement('option'); none.value = ''; none.textContent = '— Choose a category —'; sel.appendChild(none);
+		cats.forEach(function (c) { var o = document.createElement('option'); o.value = c; o.textContent = c; sel.appendChild(o); });
+		var n = document.createElement('option'); n.value = NEW_CAT; n.textContent = '+ New category…'; sel.appendChild(n);
+		sel.value = current || '';
+		$('f-cat-new').hidden = true; $('f-cat-new').value = '';
+	}
+	$('f-cat').addEventListener('change', function () {
+		var isNew = this.value === NEW_CAT;
+		$('f-cat-new').hidden = !isNew;
+		if (isNew) $('f-cat-new').focus();
+		state.dirty = true;
+	});
+
+	function openEditor(p) {
+		state.editing = p;
+		state.items = [];
+		state.coverKey = null;
+		state.extraCover = '';
+		msg($('edit-error'));
+		$('edit-title').textContent = p ? 'Edit project' : 'Add new work';
+		$('edit-sub').textContent = p ? 'Change anything, then press Publish.' : 'Fill in the details and press Publish.';
+		$('f-title').value = p ? p.title : '';
+		fillCategories(p ? p.category : '');
+		$('f-desc').value = p ? p.description : '';
+		$('f-date').value = (p && p.date) || new Date().toISOString().slice(0, 10);
+		$('f-home').checked = p ? p.show_on_home : true;
+		if (p) {
+			p.images.forEach(function (path) {
+				var it = { key: 'k' + (++keySeq), kind: 'existing', path: path, preview: path };
+				state.items.push(it);
+				if (p.cover && p.cover === path && !state.coverKey) state.coverKey = it.key;
+			});
+			if (p.cover && !state.coverKey) state.extraCover = p.cover;
+		}
+		renderPhotos();
+		$('yt-list').innerHTML = '';
+		var links = p && p.youtube.length ? p.youtube : [''];
+		links.forEach(addYtRow);
+		$('delete-zone').hidden = !p;
+		$('status').textContent = '';
+		state.dirty = false;
+		show('v-edit');
+		if (!p) $('f-title').focus();
+	}
+
+	function coverIndex() {
+		if (state.coverKey) {
+			for (var i = 0; i < state.items.length; i++) if (state.items[i].key === state.coverKey) return i;
+		}
+		return state.extraCover ? -1 : 0;
+	}
+	function renderPhotos() {
+		var box = $('photos'); box.innerHTML = '';
+		var ci = coverIndex();
+		state.items.forEach(function (it, i) {
+			var d = document.createElement('div');
+			d.className = 'photo' + (i === ci ? ' is-cover' : '');
+			var img = document.createElement('img'); img.src = it.preview; img.alt = 'Photo ' + (i + 1); img.loading = 'lazy';
+			d.appendChild(img);
+			if (i === ci) { var b = document.createElement('span'); b.className = 'badge'; b.textContent = 'Cover'; d.appendChild(b); }
+			var tools = document.createElement('div'); tools.className = 'tools';
+			tools.appendChild(tool('◀', 'Move earlier', i === 0, function () { move(i, -1); }));
+			tools.appendChild(tool('★', 'Use as cover', i === ci, function () { state.coverKey = it.key; state.extraCover = ''; state.dirty = true; renderPhotos(); }));
+			tools.appendChild(tool('▶', 'Move later', i === state.items.length - 1, function () { move(i, 1); }));
+			var rm = tool('✕', 'Remove photo', false, function () {
+				state.items.splice(i, 1);
+				if (state.coverKey === it.key) state.coverKey = null;
+				state.dirty = true; renderPhotos();
+			});
+			rm.className = 'rm'; tools.appendChild(rm);
+			d.appendChild(tools);
+			box.appendChild(d);
+		});
+	}
+	function tool(label, title, disabled, fn) {
+		var b = document.createElement('button');
+		b.type = 'button'; b.textContent = label; b.title = title; b.setAttribute('aria-label', title); b.disabled = disabled;
+		b.addEventListener('click', fn);
+		return b;
+	}
+	function move(i, dir) {
+		var j = i + dir; if (j < 0 || j >= state.items.length) return;
+		var t = state.items[i]; state.items[i] = state.items[j]; state.items[j] = t;
+		state.dirty = true; renderPhotos();
+	}
+
+	// Shrink big photos before upload (keeps the site fast and uploads quick on mobile data).
+	var MAX_SIDE = 2000;
+	function prepareImage(file) {
+		var type = (file.type || '').toLowerCase();
+		var extFor = { 'image/jpeg': 'jpg', 'image/png': 'png', 'image/webp': 'webp', 'image/gif': 'gif' };
+		if (type === 'image/gif') {
+			if (file.size > 12 * 1024 * 1024) return Promise.reject(new Error(file.name + ' is too large (GIFs must be under 12 MB).'));
+			return Promise.resolve({ blob: file, ext: 'gif' });
+		}
+		if ((type === 'image/png' || type === 'image/webp') && file.size <= 1.5 * 1024 * 1024) return Promise.resolve({ blob: file, ext: extFor[type] });
+		var load = window.createImageBitmap
+			? createImageBitmap(file).catch(function () { return loadViaImg(file); })
+			: loadViaImg(file);
+		return load.then(function (bmp) {
+			var w = bmp.width, h = bmp.height;
+			var scale = Math.min(1, MAX_SIDE / Math.max(w, h));
+			if (scale === 1 && type === 'image/jpeg' && file.size <= 1.5 * 1024 * 1024) return { blob: file, ext: 'jpg' };
+			var c = document.createElement('canvas');
+			c.width = Math.round(w * scale); c.height = Math.round(h * scale);
+			var ctx = c.getContext('2d');
+			ctx.fillStyle = '#fff'; ctx.fillRect(0, 0, c.width, c.height);
+			ctx.drawImage(bmp, 0, 0, c.width, c.height);
+			if (bmp.close) bmp.close();
+			return new Promise(function (res, rej) {
+				c.toBlob(function (b) { b ? res({ blob: b, ext: 'jpg' }) : rej(new Error('Could not read ' + file.name)); }, 'image/jpeg', 0.86);
+			});
+		});
+	}
+	function loadViaImg(file) {
+		return new Promise(function (res, rej) {
+			var img = new Image(); var url = URL.createObjectURL(file);
+			img.onload = function () { res(img); };
+			img.onerror = function () { URL.revokeObjectURL(url); rej(new Error(file.name + ' could not be opened. Try a JPG or PNG.')); };
+			img.src = url;
+		});
+	}
+
+	$('f-files').addEventListener('change', function () {
+		var files = Array.prototype.slice.call(this.files || []);
+		this.value = '';
+		if (!files.length) return;
+		msg($('edit-error'));
+		var n = 0;
+		$('status').textContent = 'Preparing photos…';
+		files.reduce(function (p, file) {
+			return p.then(function () {
+				n++; $('status').textContent = 'Preparing photo ' + n + ' of ' + files.length + '…';
+				return prepareImage(file).then(function (r) {
+					state.items.push({ key: 'k' + (++keySeq), kind: 'new', blob: r.blob, ext: r.ext, name: file.name.replace(/\.[^.]+$/, ''), preview: URL.createObjectURL(r.blob) });
+					state.dirty = true; renderPhotos();
+				}).catch(function (err) { msg($('edit-error'), err.message); });
+			});
+		}, Promise.resolve()).then(function () { $('status').textContent = ''; });
+	});
+
+	function addYtRow(value) {
+		var row = document.createElement('div'); row.className = 'yt-row';
+		var inp = document.createElement('input');
+		inp.type = 'url'; inp.inputMode = 'url'; inp.placeholder = 'https://youtu.be/…'; inp.value = value || '';
+		inp.addEventListener('input', function () { state.dirty = true; });
+		var rm = document.createElement('button');
+		rm.type = 'button'; rm.className = 'icon-btn'; rm.textContent = '✕'; rm.setAttribute('aria-label', 'Remove this video link');
+		rm.addEventListener('click', function () {
+			row.remove(); state.dirty = true;
+			if (!$('yt-list').children.length) addYtRow('');
+		});
+		row.appendChild(inp); row.appendChild(rm);
+		$('yt-list').appendChild(row);
+		return inp;
+	}
+	$('yt-add').addEventListener('click', function () { addYtRow('').focus(); });
+	['f-title', 'f-desc', 'f-date', 'f-home', 'f-cat-new'].forEach(function (id) {
+		$(id).addEventListener('input', function () { state.dirty = true; });
+		$(id).addEventListener('change', function () { state.dirty = true; });
+	});
+
+	$('back-btn').addEventListener('click', function () {
+		if (state.busy) return;
+		if (state.dirty && !confirm('Leave without publishing? Your changes will be lost.')) return;
+		state.dirty = false; show('v-list');
+	});
+	window.addEventListener('beforeunload', function (e) { if (state.dirty || state.busy) { e.preventDefault(); e.returnValue = ''; } });
+
+	function toBase64(blob) {
+		return new Promise(function (res, rej) {
+			var fr = new FileReader();
+			fr.onload = function () { res(String(fr.result).split(',')[1] || ''); };
+			fr.onerror = function () { rej(new Error('Could not read a photo.')); };
+			fr.readAsDataURL(blob);
+		});
+	}
+
+	function setBusy(on, text) {
+		state.busy = on;
+		$('publish-btn').disabled = on; $('delete-btn').disabled = on; $('back-btn').disabled = on;
+		$('publish-btn').textContent = on ? 'Working…' : 'Publish';
+		$('status').textContent = text || '';
+	}
+
+	$('publish-btn').addEventListener('click', function () {
+		if (state.busy) return;
+		msg($('edit-error'));
+		var title = $('f-title').value.trim();
+		var category = $('f-cat').value === NEW_CAT ? $('f-cat-new').value.trim() : $('f-cat').value;
+		var links = Array.prototype.map.call($('yt-list').querySelectorAll('input'), function (i) { return i.value.trim(); }).filter(Boolean);
+		var badLink = links.filter(function (l) { return !ytId(l); })[0];
+		if (!title) { msg($('edit-error'), 'Please give the project a title.'); $('f-title').focus(); return; }
+		if ($('f-cat').value === NEW_CAT && !category) { msg($('edit-error'), 'Please type the new category name.'); $('f-cat-new').focus(); return; }
+		if (badLink) { msg($('edit-error'), 'This doesn’t look like a YouTube link: ' + badLink); return; }
+		if (!state.items.length && !links.length) { msg($('edit-error'), 'Add at least one photo or a YouTube link.'); return; }
+
+		var newOnes = state.items.filter(function (it) { return it.kind === 'new' && !it.path; });
+		var uploads = [];
+		state.items.forEach(function (it) { if (it.kind === 'new' && it.path && it.sha) uploads.push({ path: it.path, sha: it.sha }); });
+		var done = 0;
+		setBusy(true, newOnes.length ? 'Uploading photo 1 of ' + newOnes.length + '…' : 'Publishing…');
+
+		newOnes.reduce(function (p, it) {
+			return p.then(function () {
+				$('status').textContent = 'Uploading photo ' + (done + 1) + ' of ' + newOnes.length + '…';
+				return toBase64(it.blob).then(function (data) {
+					return api('upload', { name: it.name, ext: it.ext, data: data });
+				}).then(function (r) {
+					it.path = r.path; it.sha = r.sha; done++;
+					uploads.push({ path: r.path, sha: r.sha });
+				});
+			});
+		}, Promise.resolve()).then(function () {
+			$('status').textContent = 'Publishing…';
+			var images = state.items.map(function (it) { return it.path; });
+			var ci = coverIndex();
+			var cover = ci >= 0 && state.items[ci] ? state.items[ci].path : state.extraCover;
+			return api('save', {
+				slug: state.editing ? state.editing.slug : null,
+				uploads: uploads,
+				project: {
+					title: title, category: category, date: $('f-date').value, show_on_home: $('f-home').checked,
+					cover: cover || '', description: $('f-desc').value, youtube: links, images: images
+				}
+			});
+		}).then(function (r) {
+			state.dirty = false;
+			setBusy(false);
+			$('done-title').textContent = state.editing ? 'Changes published!' : 'Published!';
+			$('done-sub').textContent = 'Your website updates in about a minute. If the page isn’t there yet, wait a moment and refresh.';
+			$('done-view').href = r.url;
+			show('v-done');
+			loadProjects();
+		}).catch(function (err) {
+			setBusy(false);
+			msg($('edit-error'), err.message + (done ? ' (Photos already uploaded are kept — just press Publish again.)' : ''));
+			window.scrollTo(0, 0);
+		});
+	});
+
+	$('delete-btn').addEventListener('click', function () {
+		var p = state.editing; if (!p || state.busy) return;
+		if (!confirm('Delete “' + p.title + '” from your website? This removes the project page and its card.')) return;
+		setBusy(true, 'Deleting…');
+		api('delete', { slug: p.slug }).then(function () {
+			state.dirty = false; setBusy(false);
+			$('done-title').textContent = 'Project deleted';
+			$('done-sub').textContent = 'It will disappear from your website in about a minute.';
+			$('done-view').href = '/portfolio/';
+			show('v-done');
+			loadProjects();
+		}).catch(function (err) { setBusy(false); msg($('edit-error'), err.message); });
+	});
+	$('done-back').addEventListener('click', function () { show('v-list'); });
+
+	// ---------- start ----------
+	api('me').then(showApp).catch(function (err) {
+		showLogin(/not set up/i.test(err.message) ? err.message : '');
+	});
+})();
+</script>
+</body>
+</html>

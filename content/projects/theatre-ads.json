@@ -1,9 +1,18 @@
 {
   "title": "Theatre Ads",
   "category": "Video Editing",
+  "categories": [
+    "Video Editing"
+  ],
   "date": "2026-11-01",
   "show_on_home": true,
+  "cover": "",
+  "description": "",
   "youtube": [
+    "https://youtu.be/jxrEKjZuLEo",
+    "https://youtu.be/0oBjV9QC900",
+    "https://youtu.be/HsDy2E8Gqhw",
     "https://youtu.be/jxrEKjZuLEo"
-  ]
+  ],
+  "images": []
 }

@@ -34,7 +34,8 @@ The older Pages CMS dashboard (`.pages.yml`, app.pagescms.org) still works too, 
 
 **https://pavithran.pages.dev/admin/vault/** is a private folder for your scripts, plugins and other
 files. It uses the same username and password as the admin page. Upload (drag-and-drop works),
-sort into folders, rename, download and delete — up to 25 MB per file.
+sort into folders, rename, download and delete — up to 500 MB per file (files over 20 MB are stored
+in 20 MB pieces and joined back together when you download them).
 
 The files are **not** stored in this GitHub repo (the repo is public). They live in Cloudflare KV storage,
 which only the vault can read. One-time setup:
@@ -45,7 +46,8 @@ which only the vault can read. One-time setup:
 3. Deployments → latest → ⋯ → **Retry deployment**.
 
 Files: `src/admin/vault/index.html` (the page) and `functions/admin/vault-api/[[path]].js` (its back end).
-Cloudflare's free plan allows about 1,000 uploads/renames per day and 1 GB of storage.
+Cloudflare's free KV plan allows 1 GB of storage in total and about 1,000 saves per day
+(every 20 MB piece of a big file counts as one save).
 
 ## How the site is organised
 

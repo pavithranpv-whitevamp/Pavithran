@@ -264,7 +264,7 @@ dialog::backdrop { background: rgba(4,12,20,.7); backdrop-filter: blur(4px); -we
 				<h1>Your <em>vault</em></h1>
 				<div class="stats">
 					<span class="stat"><svg class="i"><use href="#i-files"/></svg><b id="stat-count">0</b> files</span>
-					<span class="stat"><svg class="i"><use href="#i-db"/></svg><b id="stat-size">0 B</b> stored</span>
+					<span class="stat"><svg class="i"><use href="#i-db"/></svg><b id="stat-size">0 B</b> of 1 GB used</span>
 				</div>
 			</div>
 			<button class="btn btn--gold" type="button" id="upload-btn"><svg class="i"><use href="#i-upload"/></svg>Upload files</button>
@@ -311,7 +311,7 @@ dialog::backdrop { background: rgba(4,12,20,.7); backdrop-filter: blur(4px); -we
 <dialog id="up-dlg">
 	<form class="sheet" id="up-form" method="dialog">
 		<h2>Upload files</h2>
-		<p class="sub">Up to 25 MB per file. Only you can download them.</p>
+		<p class="sub">Up to 500 MB per file. Only you can download them.</p>
 		<label class="pick" for="up-input">
 			<svg class="i"><use href="#i-files"/></svg>
 			<span><b id="pick-label">Choose files</b><small>Scripts, plugins, zips — anything</small></span>
@@ -352,7 +352,7 @@ dialog::backdrop { background: rgba(4,12,20,.7); backdrop-filter: blur(4px); -we
 	'use strict';
 	var $ = function (id) { return document.getElementById(id); };
 	var API = '/admin/vault-api/';
-	var state = { files: [], folder: '*', q: '', view: 'grid', maxBytes: 25 * 1024 * 1024, editing: null };
+	var state = { files: [], folder: '*', q: '', view: 'grid', maxBytes: 500 * 1024 * 1024, chunkBytes: 20 * 1024 * 1024, editing: null };
 	try { state.view = localStorage.getItem('vault-view') || 'grid'; } catch (e) {}
 
 	// ---------- utilities ----------
@@ -424,7 +424,7 @@ dialog::backdrop { background: rgba(4,12,20,.7); backdrop-filter: blur(4px); -we
 	function load(fromLogin) {
 		if (!fromLogin) skeleton();
 		return req(API + 'list').then(function (d) {
-			state.files = d.files || []; state.maxBytes = d.maxBytes || state.maxBytes;
+			state.files = d.files || []; state.maxBytes = d.maxBytes || state.maxBytes; state.chunkBytes = d.chunkBytes || state.chunkBytes;
 			showApp(); render();
 		}).catch(function (e) { if (!/log in/i.test(e.message)) { showApp(); toast(e.message, 'err'); render(); } });
 	}
@@ -587,7 +587,8 @@ dialog::backdrop { background: rgba(4,12,20,.7); backdrop-filter: blur(4px); -we
 		function next() {
 			if (i >= queue.length) return;
 			var it = queue[i++];
-			if (it.file.size > state.maxBytes) { done(it, false, 'over 25 MB'); next(); return; }
+			if (it.file.size > state.maxBytes) { done(it, false, 'over 500 MB', '“' + it.file.name + '” is over 500 MB, the vault’s per-file limit.'); next(); return; }
+			if (it.file.size > state.chunkBytes) { uploadBig(it, folder).then(next); return; }
 			var fd = new FormData(); fd.append('file', it.file); fd.append('folder', folder);
 			var x = new XMLHttpRequest();
 			x.open('POST', API + 'upload'); x.withCredentials = true;
@@ -604,6 +605,56 @@ dialog::backdrop { background: rgba(4,12,20,.7); backdrop-filter: blur(4px); -we
 		}
 		for (var k = 0; k < Math.min(3, queue.length); k++) next();
 	}
+	// Big files: send 20 MB pieces one after another, then tell the server the file is complete.
+	function sendPiece(url, blob, onProgress) {
+		return new Promise(function (resolve, reject) {
+			var x = new XMLHttpRequest();
+			x.open('POST', url); x.withCredentials = true;
+			x.upload.onprogress = function (e) { if (e.lengthComputable) onProgress(e.loaded); };
+			x.onload = function () {
+				var d = {}; try { d = JSON.parse(x.responseText); } catch (e) {}
+				if (x.status === 401) { showLogin(); reject(new Error('Please log in again.')); }
+				else if (x.status >= 200 && x.status < 300) resolve(d);
+				else reject(new Error(d.error || 'Upload failed (' + x.status + ').'));
+			};
+			x.onerror = function () { reject(new Error('network')); };
+			x.send(blob);
+		});
+	}
+	function uploadBig(it, folder) {
+		var f = it.file, meta = { name: f.name, folder: folder, size: f.size, type: f.type }, info;
+		it.st.textContent = '0%';
+		return req(API + 'big-start', { method: 'POST', json: meta }).then(function (d) {
+			info = d;
+			var n = 0;
+			function piece() {
+				if (n >= info.chunks) return Promise.resolve();
+				var start = n * info.chunkBytes, blob = f.slice(start, Math.min(f.size, start + info.chunkBytes)), tries = 0;
+				function attempt() {
+					return sendPiece(API + 'big-chunk/' + info.id + '/' + n, blob, function (loaded) {
+						var p = Math.min(99, Math.floor((start + loaded) / f.size * 100));
+						it.fill.style.width = p + '%'; it.st.textContent = p + '%';
+					}).catch(function (e) {
+						if (e.message === 'network' && ++tries < 3) return new Promise(function (r) { setTimeout(r, 1500 * tries); }).then(attempt);
+						throw e.message === 'network' ? new Error('Network error while uploading “' + f.name + '”.') : e;
+					});
+				}
+				return attempt().then(function () { n++; return piece(); });
+			}
+			return piece();
+		}).then(function () {
+			it.st.textContent = 'saving…';
+			meta.id = info.id;
+			return req(API + 'big-finish', { method: 'POST', json: meta });
+		}).then(function (d) {
+			state.files.unshift(d.file); render(); done(it, true);
+		}).catch(function (e) {
+			if (info) req(API + 'big-abort', { method: 'POST', json: { id: info.id, chunks: info.chunks } }).catch(function () {});
+			done(it, false, 'failed', e.message);
+		});
+	}
+	window.addEventListener('beforeunload', function (e) { if (active) { e.preventDefault(); e.returnValue = ''; } });
+
 	function done(it, ok, label, longMsg) {
 		active--; it.fill.style.width = '100%';
 		it.bar.className = 'bar ' + (ok ? 'ok' : 'err'); it.st.className = 'st ' + (ok ? 'ok' : 'err'); it.st.textContent = ok ? 'done' : label;

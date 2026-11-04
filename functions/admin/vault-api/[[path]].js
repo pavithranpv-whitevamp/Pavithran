@@ -10,8 +10,10 @@
 // Then redeploy.
 
 const COOKIE = 'pv_admin';
-const MAX_FILE_BYTES = 25 * 1024 * 1024; // Cloudflare KV limit per value
-const KEY_PREFIX = 'f:';
+const CHUNK_BYTES = 20 * 1024 * 1024;     // one KV value can hold up to 25 MB, so big files are split into 20 MB pieces
+const MAX_FILE_BYTES = 500 * 1024 * 1024; // largest single file (the free KV plan holds about 1 GB in total)
+const KEY_PREFIX = 'f:'; // f:<id>   → the file (small files) or just its details (big files)
+const CHUNK_PREFIX = 'c:'; // c:<id>:<n> → piece n of a big file
 const enc = new TextEncoder();
 
 // ---------- helpers ----------
@@ -67,7 +69,7 @@ async function listFiles(env) {
     cursor = r.list_complete ? null : r.cursor;
   } while (cursor);
   files.sort((a, b) => (b.uploaded || 0) - (a.uploaded || 0));
-  return json({ files, maxBytes: MAX_FILE_BYTES });
+  return json({ files, maxBytes: MAX_FILE_BYTES, chunkBytes: CHUNK_BYTES });
 }
 
 async function upload(request, env) {
@@ -75,7 +77,7 @@ async function upload(request, env) {
   if (!form) return fail(400, 'No file received.');
   const file = form.get('file');
   if (!file || typeof file === 'string') return fail(400, 'No file received.');
-  if (file.size > MAX_FILE_BYTES) return fail(413, `“${file.name}” is over 25 MB, the vault’s per-file limit.`);
+  if (file.size > CHUNK_BYTES) return fail(413, 'Big files must be uploaded in pieces. Reload the page and try again.');
   const name = cleanName(file.name);
   if (!name) return fail(400, 'That file has no name.');
   const folder = cleanFolder(form.get('folder'));
@@ -86,13 +88,86 @@ async function upload(request, env) {
   return json({ ok: true, file: { id, ...meta } });
 }
 
+// ----- big files: start → pieces → finish -----
+function chunkCount(size) { return Math.max(1, Math.ceil(size / CHUNK_BYTES)); }
+
+async function bigStart(request, env) {
+  const body = await request.json().catch(() => ({}));
+  const size = Number(body.size);
+  if (!Number.isFinite(size) || size <= 0) return fail(400, 'Unknown file size.');
+  if (size > MAX_FILE_BYTES) return fail(413, `“${cleanName(body.name)}” is over 500 MB, the vault’s per-file limit.`);
+  if (!cleanName(body.name)) return fail(400, 'That file has no name.');
+  if (cleanFolder(body.folder) === null) return fail(400, 'Folder name not allowed.');
+  return json({ id: newId(), chunks: chunkCount(size), chunkBytes: CHUNK_BYTES });
+}
+
+async function bigChunk(request, env, id, nStr) {
+  const n = Number(nStr);
+  if (!ID_RE.test(id) || !Number.isInteger(n) || n < 0 || n >= chunkCount(MAX_FILE_BYTES)) return fail(400, 'Bad piece.');
+  const data = await request.arrayBuffer();
+  if (!data.byteLength || data.byteLength > CHUNK_BYTES) return fail(413, 'Piece too large.');
+  await env.VAULT.put(`${CHUNK_PREFIX}${id}:${n}`, data, { metadata: { t: Date.now() } });
+  return json({ ok: true });
+}
+
+async function bigFinish(request, env) {
+  const body = await request.json().catch(() => ({}));
+  const id = String(body.id || '');
+  const size = Number(body.size);
+  const name = cleanName(body.name);
+  const folder = cleanFolder(body.folder);
+  if (!ID_RE.test(id) || !name || folder === null || !(size > 0) || size > MAX_FILE_BYTES) return fail(400, 'Upload details are wrong.');
+  const chunks = chunkCount(size);
+  // Make sure the last piece arrived before the file appears in the vault.
+  const last = await env.VAULT.get(`${CHUNK_PREFIX}${id}:${chunks - 1}`, { type: 'stream' });
+  if (!last) return fail(409, 'Some pieces of the file are missing. Please upload it again.');
+  await last.cancel();
+  const meta = { name, folder, size, type: String(body.type || '').slice(0, 100), uploaded: Date.now(), chunks };
+  await env.VAULT.put(KEY_PREFIX + id, '', { metadata: meta });
+  return json({ ok: true, file: { id, ...meta } });
+}
+
+async function deletePieces(env, id, chunks) {
+  const keys = [];
+  for (let n = 0; n < (chunks || chunkCount(MAX_FILE_BYTES)); n++) keys.push(`${CHUNK_PREFIX}${id}:${n}`);
+  for (let i = 0; i < keys.length; i += 20) await Promise.all(keys.slice(i, i + 20).map((k) => env.VAULT.delete(k)));
+}
+
+async function bigAbort(request, env) {
+  const body = await request.json().catch(() => ({}));
+  const id = String(body.id || '');
+  if (!ID_RE.test(id)) return fail(400, 'Unknown upload.');
+  const done = await env.VAULT.getWithMetadata(KEY_PREFIX + id, { type: 'stream' });
+  if (done.value) { await done.value.cancel(); return fail(409, 'That upload already finished.'); }
+  await deletePieces(env, id, Math.max(1, Math.min(chunkCount(MAX_FILE_BYTES), Number(body.chunks) || 0)));
+  return json({ ok: true });
+}
+
 async function download(env, id) {
   if (!ID_RE.test(id)) return fail(400, 'Unknown file.');
   const { value, metadata } = await env.VAULT.getWithMetadata(KEY_PREFIX + id, { type: 'stream' });
   if (!value) return fail(404, 'That file no longer exists.');
   const name = (metadata && metadata.name) || 'file';
-  return new Response(value, {
+  let body = value;
+  if (metadata && metadata.chunks) {
+    await value.cancel();
+    // Join the pieces back together as the download streams out.
+    const { readable, writable } = new TransformStream();
+    (async () => {
+      try {
+        for (let n = 0; n < metadata.chunks; n++) {
+          const part = await env.VAULT.get(`${CHUNK_PREFIX}${id}:${n}`, { type: 'stream' });
+          if (!part) throw new Error('missing piece ' + n);
+          await part.pipeTo(writable, { preventClose: true });
+        }
+        await writable.close();
+      } catch (e) { await writable.abort(e).catch(() => {}); }
+    })();
+    body = readable;
+  }
+  return new Response(body, {
     headers: {
+      ...(metadata && metadata.size ? { 'Content-Length': String(metadata.size) } : {}),
       'Content-Type': 'application/octet-stream',
       'Content-Disposition': `attachment; filename="${name.replace(/[^\x20-\x7e]/g, '_')}"; filename*=UTF-8''${encodeURIComponent(name)}`,
       'Cache-Control': 'no-store',
@@ -107,7 +182,7 @@ async function update(request, env) {
   const id = String(body.id || '');
   if (!ID_RE.test(id)) return fail(400, 'Unknown file.');
   const { value, metadata } = await env.VAULT.getWithMetadata(KEY_PREFIX + id, { type: 'arrayBuffer' });
-  if (!value) return fail(404, 'That file no longer exists.');
+  if (value === null || !metadata) return fail(404, 'That file no longer exists.');
   const meta = { ...metadata };
   if (body.name !== undefined) {
     const n = cleanName(body.name);
@@ -127,7 +202,11 @@ async function remove(request, env) {
   const body = await request.json().catch(() => ({}));
   const ids = (Array.isArray(body.ids) ? body.ids : [body.id]).map(String).filter((i) => ID_RE.test(i)).slice(0, 100);
   if (!ids.length) return fail(400, 'Nothing to delete.');
-  await Promise.all(ids.map((i) => env.VAULT.delete(KEY_PREFIX + i)));
+  for (const i of ids) {
+    const { metadata } = await env.VAULT.getWithMetadata(KEY_PREFIX + i, { type: 'stream' }).then((r) => { if (r.value) r.value.cancel(); return r; });
+    if (metadata && metadata.chunks) await deletePieces(env, i, metadata.chunks);
+    await env.VAULT.delete(KEY_PREFIX + i);
+  }
   return json({ ok: true, deleted: ids.length });
 }
 
@@ -153,6 +232,10 @@ export async function onRequest(context) {
     if (route === 'list' && method === 'GET') return await listFiles(env);
     if (route === 'file' && method === 'GET' && parts.length === 2) return await download(env, parts[1]);
     if (route === 'upload' && method === 'POST') return await upload(request, env);
+    if (route === 'big-start' && method === 'POST') return await bigStart(request, env);
+    if (route === 'big-chunk' && method === 'POST' && parts.length === 3) return await bigChunk(request, env, parts[1], parts[2]);
+    if (route === 'big-finish' && method === 'POST') return await bigFinish(request, env);
+    if (route === 'big-abort' && method === 'POST') return await bigAbort(request, env);
     if (route === 'update' && method === 'POST') return await update(request, env);
     if (route === 'delete' && method === 'POST') return await remove(request, env);
     return fail(404, 'Not found.');

@@ -548,3 +548,40 @@ body.lb-open { overflow: hidden; }
 }
 @media print { .fl, .ch { display: none !important; } }
 .fl.is-open .fl-wa { display: none; }
+
+/* ---- Animations for the WhatsApp button and Cue (every page) ---- */
+/* 1. Both buttons pop in when a page opens */
+.fl-wa { animation: fl-pop .6s cubic-bezier(.34, 1.56, .64, 1) .35s both; }
+.fl-chat { animation: fl-pop .6s cubic-bezier(.34, 1.56, .64, 1) .5s both, fl-bob 5s ease-in-out 1.6s infinite; }
+@keyframes fl-pop { from { opacity: 0; scale: .3; translate: 0 20px; } }
+@keyframes fl-bob { 0%, 100% { translate: 0 0; } 50% { translate: 0 -4px; } }
+
+/* 2. WhatsApp: ripple rings + a little phone-ring wiggle every few seconds */
+.fl-wa::before, .fl-wa::after { content: ""; position: absolute; inset: 0; border-radius: 50%; border: 2px solid #25D366; opacity: 0; animation: fl-ripple 3s ease-out 1.2s infinite; pointer-events: none; }
+.fl-wa::after { animation-delay: 2.2s; }
+@keyframes fl-ripple { 0% { opacity: .7; transform: scale(1); } 80%, 100% { opacity: 0; transform: scale(1.75); } }
+.fl-wa svg { animation: fl-ring 6s ease-in-out 2s infinite; transform-origin: 50% 60%; }
+@keyframes fl-ring { 0%, 8%, 100% { transform: none; } 1% { transform: rotate(-16deg); } 2.5% { transform: rotate(14deg); } 4% { transform: rotate(-10deg); } 5.5% { transform: rotate(8deg); } 7% { transform: rotate(-4deg); } }
+
+/* 3. Cue: waving hand, "online" dot pulse, avatar tilt on hover */
+.fl-chat .lbl { display: inline-flex; align-items: center; gap: .35rem; }
+.fl-chat .wave { display: inline-block; transform-origin: 70% 80%; animation: fl-wave 4s ease-in-out 1.4s infinite; }
+@keyframes fl-wave { 0%, 30%, 100% { transform: none; } 5% { transform: rotate(18deg); } 10% { transform: rotate(-10deg); } 15% { transform: rotate(16deg); } 20% { transform: rotate(-6deg); } 25% { transform: rotate(10deg); } }
+.fl-chat .av { transition: transform .35s cubic-bezier(.34, 1.56, .64, 1); }
+.fl-chat:hover .av { transform: rotate(-14deg) scale(1.08); }
+.fl-chat .av::after { animation: fl-online 2s ease-out infinite; }
+@keyframes fl-online { 0% { box-shadow: 0 0 0 0 rgba(242, 171, 1, .7); } 70%, 100% { box-shadow: 0 0 0 7px rgba(242, 171, 1, 0); } }
+.fl-chat:hover { animation-play-state: running, paused; }
+
+/* 4. Hint bubble types first, then speaks; chat window grows out of the button */
+.fl-nudge .ch-typing { padding: .2rem .1rem; }
+.fl-nudge b { color: var(--navy); }
+.fl-nudge.is-said { animation: fl-said .35s ease both; }
+@keyframes fl-said { from { opacity: .4; transform: scale(.96); } }
+.fl-nudge.is-out { transition: opacity .35s, transform .35s; opacity: 0; transform: translateY(6px); }
+.ch { transform-origin: 100% 100%; animation: fl-open .4s cubic-bezier(.34, 1.4, .64, 1) both; }
+@keyframes fl-open { from { opacity: 0; transform: scale(.6) translateY(20px); } }
+.ch-head .av { animation: fl-head 2.4s ease-out infinite; }
+@keyframes fl-head { 0% { box-shadow: 0 0 0 2px var(--gold), 0 0 0 2px rgba(242, 171, 1, .6); } 70%, 100% { box-shadow: 0 0 0 2px var(--gold), 0 0 0 10px rgba(242, 171, 1, 0); } }
+.fl-chat[aria-expanded="true"] .x { animation: fl-spin .3s ease both; }
+@keyframes fl-spin { from { transform: rotate(-90deg) scale(.5); opacity: 0; } }

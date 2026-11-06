@@ -51,7 +51,7 @@ Cloudflare's free KV plan allows 1 GB of storage in total and about 1,000 saves 
 
 ## WhatsApp button, recruiter assistant and Career Timeline
 
-- **WhatsApp button + "Hiring? Ask me" chat** appear on every public page. Both live in
+- **WhatsApp button + "Cue" (the "Hiring? Ask Cue" chat)** appear on every public page, with gentle animations. Both live in
   `src/assets/js/assistant.js`: change the WhatsApp number in `WA_NUMBER`, and edit any answer in
   the `ANSWERS` list (each has the words that trigger it and the reply). It's free and needs no server —
   it answers from the facts written there, and sends anything it can't answer to WhatsApp.

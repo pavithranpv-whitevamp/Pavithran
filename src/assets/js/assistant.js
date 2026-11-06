@@ -1,5 +1,5 @@
 /*
-  Floating WhatsApp button + "Ask about Pavithran" recruiter assistant.
+  Floating WhatsApp button + "Cue", the recruiter assistant.
   The assistant is a simple, free, no-server helper: it matches what the visitor asks
   against the answers below (taken from Pavithran's CV and this website).
   To change an answer, edit the ANSWERS list. To change the WhatsApp number, edit WA_NUMBER.
@@ -183,8 +183,8 @@
 		},
 		{
 			id: 'bot',
-			keys: ['are you a bot', 'are you human', 'who are you', 'what are you', 'real person', 'ai'],
-			html: function () { return '<p>I’m an automated assistant with answers from Pavithran’s CV and website. For anything I can’t answer, he’s one tap away on WhatsApp.</p>'; },
+			keys: ['are you a bot', 'are you human', 'who are you', 'what are you', 'your name', 'real person', 'ai', 'cue'],
+			html: function () { return '<p>I’m <b>Cue</b>, Pavithran’s automated assistant — named after the cue points editors drop on a timeline. My answers come from his CV and website. For anything I can’t answer, he’s one tap away on WhatsApp.</p>'; },
 			chips: ['waHire', 'exp', 'skills']
 		},
 		{
@@ -232,16 +232,16 @@
 	fl.className = 'fl';
 	fl.innerHTML =
 		'<a class="fl-wa" href="' + wa(WA_HIRE) + '" target="_blank" rel="noopener" aria-label="Chat with Pavithran on WhatsApp">' + WA_ICON + '<span class="fl-tip">Chat on WhatsApp</span></a>' +
-		'<button class="fl-chat" type="button" aria-expanded="false" aria-controls="ch"><span class="av" aria-hidden="true"></span><span class="lbl">Hiring? Ask me</span><span class="x" aria-hidden="true">&times;</span></button>';
+		'<button class="fl-chat" type="button" aria-expanded="false" aria-controls="ch"><span class="av" aria-hidden="true"></span><span class="lbl"><span class="wave" aria-hidden="true">👋</span> Hiring? Ask Cue</span><span class="x" aria-hidden="true">&times;</span></button>';
 
 	var ch = document.createElement('section');
 	ch.className = 'ch'; ch.id = 'ch'; ch.hidden = true;
-	ch.setAttribute('role', 'dialog'); ch.setAttribute('aria-label', 'Ask about Pavithran');
+	ch.setAttribute('role', 'dialog'); ch.setAttribute('aria-label', 'Chat with Cue, Pavithran’s assistant');
 	ch.innerHTML =
-		'<div class="ch-head"><span class="av" aria-hidden="true"></span><div><b>Ask about Pavithran</b><small>Instant answers from his CV</small></div><span class="sp"></span><button class="ch-close" type="button" aria-label="Close chat">&times;</button></div>' +
+		'<div class="ch-head"><span class="av" aria-hidden="true"></span><div><b>Cue</b><small>Pavithran’s assistant · online</small></div><span class="sp"></span><button class="ch-close" type="button" aria-label="Close chat">&times;</button></div>' +
 		'<div class="ch-log" aria-live="polite"></div>' +
 		'<form class="ch-form" autocomplete="off"><label class="screen-reader-text" for="ch-in">Type your question</label><input id="ch-in" type="text" maxlength="200" placeholder="Ask about experience, skills…"><button type="submit" aria-label="Send">' + SEND_ICON + '</button></form>' +
-		'<div class="ch-note">Automated assistant · For anything else, WhatsApp Pavithran</div>';
+		'<div class="ch-note">Cue is an automated assistant · For anything else, WhatsApp Pavithran</div>';
 
 	document.body.appendChild(ch);
 	document.body.appendChild(fl);
@@ -299,14 +299,14 @@
 	function start() {
 		if (started) { return; }
 		started = true;
-		add('ch-bot', '<p>Hi! 👋 I’m Pavithran’s assistant.</p><p>Hiring a <b>graphic designer</b> or <b>video editor</b>? Ask me about his experience, skills or availability — or tap a question below.</p>');
+		add('ch-bot', '<p>Hi! 👋 I’m <b>Cue</b>, Pavithran’s assistant.</p><p>Hiring a <b>graphic designer</b> or <b>video editor</b>? Ask me about his experience, skills or availability — or tap a question below.</p>');
 		chips(['exp', 'skills', 'avail', 'work', 'edu', 'cv', 'contact']);
 	}
 	function open(v) {
 		ch.hidden = !v;
 		btn.setAttribute('aria-expanded', String(v));
 		fl.classList.toggle('is-open', v);
-		btn.setAttribute('aria-label', v ? 'Close chat' : 'Open chat: ask about Pavithran');
+		btn.setAttribute('aria-label', v ? 'Close chat' : 'Open chat with Cue, Pavithran’s assistant');
 		var n = fl.querySelector('.fl-nudge'); if (n) { n.remove(); }
 		if (v) {
 			start();
@@ -314,7 +314,7 @@
 			if (window.matchMedia('(hover: hover)').matches) { setTimeout(function () { input.focus(); }, 50); }
 		} else { btn.focus(); }
 	}
-	btn.setAttribute('aria-label', 'Open chat: ask about Pavithran');
+	btn.setAttribute('aria-label', 'Open chat with Cue, Pavithran’s assistant');
 	btn.addEventListener('click', function () { open(ch.hidden); });
 	ch.querySelector('.ch-close').addEventListener('click', function () { open(false); });
 	document.addEventListener('keydown', function (e) { if (e.key === 'Escape' && !ch.hidden) { open(false); } });
@@ -334,11 +334,12 @@
 			if (!ch.hidden || fl.querySelector('.fl-nudge')) { return; }
 			var n = document.createElement('div');
 			n.className = 'fl-nudge';
-			n.textContent = 'Recruiter? I can answer questions about Pavithran’s experience.';
+			n.innerHTML = '<span class="ch-typing" aria-hidden="true"><i></i><i></i><i></i></span>';
+			setTimeout(function () { n.innerHTML = '<b>Hi, I’m Cue!</b> Recruiting? I can answer questions about Pavithran’s experience.'; n.classList.add('is-said'); }, calm ? 0 : 1300);
 			n.addEventListener('click', function () { open(true); });
 			btn.parentNode.insertBefore(n, btn);
 			try { sessionStorage.setItem('pvChatSeen', '1'); } catch (e) {}
-			setTimeout(function () { if (n.parentNode) { n.remove(); } }, 9000);
+			setTimeout(function () { if (n.parentNode) { n.classList.add('is-out'); setTimeout(function () { n.remove(); }, 400); } }, 10000);
 		}, 6000);
 	}
 })();

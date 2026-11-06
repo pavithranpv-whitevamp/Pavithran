@@ -11,6 +11,7 @@ const ROOT = __dirname;
 const SRC = path.join(ROOT, 'src');
 const OUT = path.join(ROOT, 'dist');
 const PROJECTS = path.join(ROOT, 'content', 'projects');
+const TESTIMONIALS = path.join(ROOT, 'content', 'testimonials.json');
 
 const esc = (s) => String(s == null ? '' : s)
   .replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
@@ -58,8 +59,16 @@ const projects = (fs.existsSync(PROJECTS) ? fs.readdirSync(PROJECTS) : [])
     if (!d || d.draft === true) return null;
     const images = asList(d.images);
     // "youtube" can be one link or a list of links
-    const yts = (Array.isArray(d.youtube) ? d.youtube : [d.youtube])
-      .map((v) => youtubeId(v && typeof v === 'object' ? (v.link || v.url || '') : v)).filter(Boolean);
+    const links = (Array.isArray(d.youtube) ? d.youtube : [d.youtube])
+      .map((v) => String(v && typeof v === 'object' ? (v.link || v.url || '') : (v || '')));
+    const vids = [];
+    for (const l of links) {
+      const id = youtubeId(l);
+      if (!id) continue;
+      if (vids.some((v) => v.id === id)) { problems.push(`${f}: the same YouTube video is listed twice (${id}) - shown once`); continue; }
+      vids.push({ id, short: /\/shorts\//i.test(l) });
+    }
+    const yts = vids.map((v) => v.id);
     const cover = imgPath(d.cover) || images[0] || (yts[0] ? `https://i.ytimg.com/vi/${yts[0]}/hqdefault.jpg` : '');
     return {
       slug: slugify(f),
@@ -74,7 +83,12 @@ const projects = (fs.existsSync(PROJECTS) ? fs.readdirSync(PROJECTS) : [])
       date: String(d.date || ''),
       home: d.show_on_home !== false,
       description: String(d.description || ''),
-      cover, images, yts,
+      cover, images, yts, vids,
+      // every single piece of work in this project, videos first
+      pieces: [
+        ...vids.map((v) => ({ kind: 'video', id: v.id, short: v.short })),
+        ...images.map((src) => ({ kind: 'image', src })),
+      ],
     };
   })
   .filter(Boolean)
@@ -82,13 +96,46 @@ const projects = (fs.existsSync(PROJECTS) ? fs.readdirSync(PROJECTS) : [])
 
 // ---------- pieces of HTML ----------
 const catSlug = (c) => slugify(c || 'other');
+const plural = (n, one, many) => `${n} ${n === 1 ? one : many}`;
+const ytThumb = (id) => `https://i.ytimg.com/vi/${id}/hqdefault.jpg`;
+// Shorts have a proper vertical thumbnail (oar2); fall back to the normal one if it is missing.
+const thumbImg = (pc, alt, extra = '') => pc.kind === 'video'
+  ? `<img src="${pc.short ? `https://i.ytimg.com/vi/${pc.id}/oar2.jpg` : ytThumb(pc.id)}"${pc.short ? ` onerror="this.onerror=null;this.src='${ytThumb(pc.id)}'"` : ''} alt="${esc(alt)}" loading="lazy" decoding="async"${extra}>`
+  : `<img src="${esc(pc.src)}" alt="${esc(alt)}" loading="lazy" decoding="async"${extra}>`;
+const counts = (p) => {
+  const v = p.pieces.filter((x) => x.kind === 'video').length, i = p.pieces.length - v;
+  return [v ? plural(v, 'video', 'videos') : '', i ? plural(i, 'design', 'designs') : ''].filter(Boolean).join(' · ');
+};
+
+// One playable/viewable tile. Opens in the on-page player (main.js); without JavaScript it is a normal link.
+const piece = (p, pc, n, cls = '') => {
+  const shape = pc.kind === 'image' ? 'img' : pc.short ? 'v' : 'h';
+  const label = `${p.title} — ${pc.kind === 'video' ? 'video' : 'design'} ${n + 1}`;
+  const href = pc.kind === 'video' ? (pc.short ? `https://www.youtube.com/shorts/${pc.id}` : `https://www.youtube.com/watch?v=${pc.id}`) : pc.src;
+  const data = pc.kind === 'video' ? `data-yt="${pc.id}"${pc.short ? ' data-short' : ''}` : `data-img="${esc(pc.src)}"`;
+  return `<a class="piece piece--${shape}${cls ? ' ' + cls : ''} reveal" href="${esc(href)}" ${data} data-title="${esc(p.title)}" data-project="/work/${p.slug}/" data-cats="${p.categories.map(catSlug).join(' ')}" target="_blank" rel="noopener" aria-label="${esc(pc.kind === 'video' ? 'Play ' : 'View ')}${esc(label)}">
+		${thumbImg(pc, label)}
+		${pc.kind === 'video' ? '<span class="piece-play" aria-hidden="true"></span>' : '<span class="piece-zoom" aria-hidden="true"></span>'}
+		<span class="piece-info"><span class="piece-cat">${esc(p.category || (pc.kind === 'video' ? 'Video' : 'Design'))}</span><span class="piece-title">${esc(p.title)}</span></span>
+	</a>`;
+};
+
+// All pieces, newest project first, mixed so neighbouring tiles come from different projects.
+const mixPieces = (list, max = Infinity) => {
+  const queues = list.map((p) => p.pieces.map((pc, n) => ({ p, pc, n })));
+  const out = [];
+  while (out.length < max && queues.some((q) => q.length)) for (const q of queues) if (q.length && out.length < max) out.push(q.shift());
+  return out;
+};
 
 const card = (p) => `<a class="card reveal" href="/work/${p.slug}/" data-cats="${p.categories.map(catSlug).join(' ')}"${p.category ? ` data-main="${esc(p.category)}"` : ''}>
 	<div class="card-media">
 		${p.cover ? `<img src="${esc(p.cover)}" alt="${esc(p.title)}" loading="lazy">` : `<span class="card-ph" aria-hidden="true">${esc(p.title.charAt(0))}</span>`}
 		<span class="card-arrow" aria-hidden="true">&nearr;</span>
 		<span class="card-info">${p.category ? `<span class="card-cat">${esc(p.category)}</span>` : ''}<span class="card-title">${esc(p.title)}</span></span>
+		${counts(p) ? `<span class="card-count">${counts(p)}</span>` : ''}
 	</div>
+	${p.pieces.length ? `<div class="card-strip" aria-hidden="true">${p.pieces.slice(0, 4).map((pc, n) => `<span class="${pc.kind === 'image' || !pc.short ? 'w' : ''}">${thumbImg(pc, '')}${n === 3 && p.pieces.length > 4 ? `<b>+${p.pieces.length - 3}</b>` : ''}</span>`).join('')}</div>` : ''}
 </a>`;
 
 const empty = `<div class="empty"><span class="eyebrow">Coming soon</span><p>New work is on its way.</p></div>`;
@@ -97,14 +144,19 @@ const cats = [];
 for (const p of projects) for (const c of p.categories) if (!cats.some((x) => catSlug(x) === catSlug(c))) cats.push(c);
 const filters = cats.length > 1
   ? `<ul class="filters" aria-label="Filter projects">
-			<li><button type="button" data-filter="all" aria-pressed="true">All</button></li>
-${cats.map((c) => `			<li><button type="button" data-filter="${catSlug(c)}" aria-pressed="false">${esc(c)}</button></li>`).join('\n')}
+			<li><button type="button" data-filter="all" aria-pressed="true">All <span class="n">${projects.reduce((a, p) => a + p.pieces.length, 0)}</span></button></li>
+${cats.map((c) => `			<li><button type="button" data-filter="${catSlug(c)}" aria-pressed="false">${esc(c)} <span class="n">${projects.filter((p) => p.categories.some((x) => catSlug(x) === catSlug(c))).reduce((a, p) => a + p.pieces.length, 0)}</span></button></li>`).join('\n')}
 		</ul>`
   : '';
 
 function projectBody(p, i) {
   const prev = projects[i - 1], next = projects[i + 1];
-  const video = p.yts.map((id, n) => `<div class="video"><iframe src="https://www.youtube-nocookie.com/embed/${id}" title="${esc(p.title)}${p.yts.length > 1 ? ` — video ${n + 1}` : ''}" loading="lazy" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowfullscreen></iframe></div>`).join('\n\t\t\t');
+  const lite = (v, n) => `<a class="yt-lite${v.short ? ' yt-lite--v' : ''}" href="${v.short ? `https://www.youtube.com/shorts/${v.id}` : `https://www.youtube.com/watch?v=${v.id}`}" data-yt="${v.id}" data-label="${esc(p.title)}${p.vids.length > 1 ? ` — video ${n + 1}` : ''}" target="_blank" rel="noopener" aria-label="Play ${esc(p.title)}${p.vids.length > 1 ? ` video ${n + 1}` : ''}">${thumbImg({ kind: 'video', ...v }, '', n < 4 ? ' loading="eager"' : '')}<span class="piece-play" aria-hidden="true"></span></a>`;
+  const wide = p.vids.filter((v) => !v.short), tall = p.vids.filter((v) => v.short);
+  const video = [
+    ...wide.map((v) => `<div class="video">${lite(v, p.vids.indexOf(v))}</div>`),
+    tall.length ? `<div class="shorts${tall.length < 3 ? ' shorts--few' : ''}">${tall.map((v) => lite(v, p.vids.indexOf(v))).join('')}</div>` : '',
+  ].filter(Boolean).join('\n\t\t\t');
   const gallery = p.images.length
     ? `<div class="gallery">\n${p.images.map((src, n) => `				<figure><img src="${esc(src)}" alt="${esc(p.title)} — image ${n + 1}" loading="${n < 3 ? 'eager' : 'lazy'}"></figure>`).join('\n')}\n			</div>`
     : '';
@@ -112,6 +164,7 @@ function projectBody(p, i) {
 		<div class="wrap">
 			${p.categories.length ? `<span class="eyebrow">${p.categories.map(esc).join(' &middot; ')}</span>` : ''}
 			<h1>${esc(p.title)}</h1>
+			${counts(p) ? `<p class="project-count">${counts(p)}</p>` : ''}
 			${p.description ? `<div class="project-desc">${paragraphs(p.description)}</div>` : ''}
 		</div>
 	</header>
@@ -141,12 +194,59 @@ const fill = (file, map) => {
   fs.writeFileSync(f, s);
 };
 
-const homeList = projects.filter((p) => p.home).slice(0, 6);
-fill('index.html', { '<!--HOME_CARDS-->': homeList.length ? homeList.map(card).join('\n') : empty });
+const homeList = projects.filter((p) => p.home);
+const allPieces = projects.reduce((a, p) => a + p.pieces.length, 0);
+const allVideos = projects.reduce((a, p) => a + p.vids.length, 0);
+const allDesigns = allPieces - allVideos;
+const homeWall = mixPieces(homeList, 10);
+// Lead with a wide piece (a landscape video or a design) as the big feature tile
+const lead = homeWall.findIndex((x) => x.pc.kind === 'image' || !x.pc.short);
+if (lead > 0) homeWall.unshift(homeWall.splice(lead, 1)[0]);
+// Trim so the wall ends on a full row (5 columns x 2 rows per band; big/design tiles take 4 cells, others 2)
+const cells = (x, i) => (i === 0 && (x.pc.kind === 'image' || !x.pc.short)) || x.pc.kind === 'image' ? 4 : 2;
+while (homeWall.length > 4 && homeWall.reduce((a, x, i) => a + cells(x, i), 0) % 10) homeWall.pop();
+const statLine = [plural(projects.length, 'project', 'projects'), allVideos ? plural(allVideos, 'video', 'videos') : '', allDesigns ? plural(allDesigns, 'design', 'designs') : ''].filter(Boolean);
+const projChip = (p) => `<a class="proj-chip" href="/work/${p.slug}/">${p.pieces[0] ? thumbImg(p.pieces[0], '') : ''}<span><b>${esc(p.title)}</b><small>${counts(p) || esc(p.category)}</small></span><i aria-hidden="true">&rarr;</i></a>`;
+fill('index.html', {
+  '<!--HOME_WALL-->': homeWall.length ? homeWall.map((x, i) => piece(x.p, x.pc, x.n, i === 0 && (x.pc.kind === 'image' || !x.pc.short) ? 'piece--big' : '')).join('\n') : empty,
+  '<!--HOME_PROJECTS-->': homeList.map(projChip).join('\n'),
+  '<!--WORK_STATS-->': statLine.map((t) => `<span>${t}</span>`).join(''),
+});
 fill('portfolio/index.html', {
   '<!--FILTERS-->': filters,
+  '<!--WORK_STATS-->': statLine.map((t) => `<span>${t}</span>`).join(''),
   '<!--ALL_CARDS-->': projects.length ? projects.map(card).join('\n') : empty,
+  '<!--ALL_PIECES-->': mixPieces(projects).map((x) => piece(x.p, x.pc, x.n)).join('\n'),
 });
+
+// ---------- testimonials (only real ones, added in the admin page) ----------
+let testimonials = [];
+try {
+  if (fs.existsSync(TESTIMONIALS)) {
+    const d = JSON.parse(fs.readFileSync(TESTIMONIALS, 'utf8'));
+    testimonials = (Array.isArray(d) ? d : d.testimonials || []).filter((t) => t && t.show !== false && String(t.name || '').trim() && String(t.quote || '').trim());
+  }
+} catch (e) { problems.push(`testimonials.json: not valid JSON (${e.message}) - testimonials not shown`); }
+const initials = (n) => String(n).trim().split(/\s+/).slice(0, 2).map((w) => w.charAt(0).toUpperCase()).join('');
+const tmSection = (eyebrow) => !testimonials.length ? '' : `<section class="tm" aria-labelledby="tm-h">
+	<div class="wrap">
+		<div class="section-head"><div><span class="eyebrow">${eyebrow}</span><h2 id="tm-h">Working <em>with me</em></h2></div></div>
+		<div class="tm-grid">
+${testimonials.map((t) => `			<figure class="tm-card reveal">
+				<blockquote>${paragraphs(t.quote)}</blockquote>
+				<figcaption class="tm-who">
+					<span class="tm-av" aria-hidden="true">${esc(initials(t.name))}</span>
+					<span><b>${/^https:\/\//.test(t.link || '') ? `<a href="${esc(t.link)}" target="_blank" rel="noopener">${esc(t.name)}</a>` : esc(t.name)}</b><small>${esc([t.role, t.company].filter(Boolean).join(', '))}</small></span>
+					${t.relation ? `<span class="tm-rel">${esc(t.relation)}</span>` : ''}
+				</figcaption>
+			</figure>`).join('\n')}
+		</div>
+		<p class="tm-ask">Worked with me? <a href="/recommend/">Add your words &rarr;</a></p>
+	</div>
+</section>`;
+fill('index.html', { '<!--TESTIMONIALS-->': tmSection('04 &mdash; Testimonials') });
+fill('about-me/index.html', { '<!--TESTIMONIALS-->': tmSection('Testimonials') });
+if (testimonials.length) fill('index.html', { '04 &mdash; My software': '05 &mdash; My software' });
 
 const tpl = fs.readFileSync(path.join(SRC, '_project.html'), 'utf8');
 projects.forEach((p, i) => {
@@ -180,7 +280,7 @@ const person = {
 };
 const ldScript = (obj) => `<script type="application/ld+json">${JSON.stringify(obj).replace(/</g, '\\u003c')}</script>`;
 
-const NOINDEX = new Set(['/thanks/', '/404.html']);
+const NOINDEX = new Set(['/thanks/', '/404.html', '/recommend/']);
 const today = new Date().toISOString().slice(0, 10);
 const pages = []; // for the sitemap
 
@@ -222,6 +322,7 @@ seo('portfolio/index.html', '/portfolio/', {
 seo('about-me/index.html', '/about-me/', { ld: [{ '@type': 'ProfilePage', url: SITE + '/about-me/', mainEntity: { '@id': SITE + '/#person' } }, person] });
 seo('contact/index.html', '/contact/', { ld: [{ '@type': 'ContactPage', url: SITE + '/contact/', about: { '@id': SITE + '/#person' } }, person] });
 seo('thanks/index.html', '/thanks/');
+seo('recommend/index.html', '/recommend/');
 seo('404.html', '/404.html');
 for (const p of projects) {
   seo(`work/${p.slug}/index.html`, `/work/${p.slug}/`, {

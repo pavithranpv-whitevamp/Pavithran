@@ -188,6 +188,57 @@ function parseProjectFile(name, text) {
   };
 }
 
+// ---------- testimonials (content/testimonials.json) ----------
+const TESTIMONIALS_FILE = 'content/testimonials.json';
+const RELATIONS = ['Colleague', 'Teammate', 'Manager', 'Client', 'Mentor', 'Other'];
+
+function normaliseTestimonial(t) {
+  t = t || {};
+  let link = clean(t.link, 300);
+  if (link && !/^https:\/\/[^\s]+$/i.test(link)) link = '';
+  const relation = RELATIONS.find((r) => r.toLowerCase() === String(t.relation || '').toLowerCase()) || '';
+  return {
+    name: clean(t.name, 80),
+    role: clean(t.role, 80),
+    company: clean(t.company, 100),
+    relation,
+    quote: clean(t.quote, 1200),
+    link,
+    show: t.show !== false,
+  };
+}
+
+function base64ToText(b64) {
+  const bin = atob(String(b64 || '').replace(/\s/g, ''));
+  return new TextDecoder().decode(Uint8Array.from(bin, (c) => c.charCodeAt(0)));
+}
+
+async function getTestimonials(env) {
+  const api = gh(env);
+  try {
+    const f = await api.call('GET', `/repos/${api.repo}/contents/${TESTIMONIALS_FILE}?ref=${encodeURIComponent(api.branch)}`);
+    const d = JSON.parse(base64ToText(f.content));
+    const list = Array.isArray(d) ? d : Array.isArray(d.testimonials) ? d.testimonials : [];
+    return json({ testimonials: list.map(normaliseTestimonial).filter((t) => t.name || t.quote) });
+  } catch (e) {
+    if (e.status === 404) return json({ testimonials: [] });
+    throw e;
+  }
+}
+
+async function saveTestimonials(request, env) {
+  const body = await request.json().catch(() => null);
+  if (!body || !Array.isArray(body.testimonials)) return fail(400, 'Nothing to save.');
+  const list = body.testimonials.slice(0, 60).map(normaliseTestimonial);
+  const bad = list.find((t) => !t.name || !t.quote);
+  if (bad) return fail(400, 'Every testimonial needs a name and their words.');
+  const shown = list.filter((t) => t.show).length;
+  await gh(env).commit(`Update testimonials (${shown} shown) via website admin`, [
+    { path: TESTIMONIALS_FILE, content: JSON.stringify({ testimonials: list }, null, 2) + '\n' },
+  ]);
+  return json({ ok: true, count: list.length, shown });
+}
+
 // ---------- routes ----------
 async function login(request, env) {
   const body = await request.json().catch(() => ({}));
@@ -292,6 +343,8 @@ export async function onRequest(context) {
     if (route === 'upload' && method === 'POST') return await uploadImage(request, env);
     if (route === 'save' && method === 'POST') return await saveProject(request, env);
     if (route === 'delete' && method === 'POST') return await deleteProject(request, env);
+    if (route === 'testimonials' && method === 'GET') return await getTestimonials(env);
+    if (route === 'testimonials' && method === 'POST') return await saveTestimonials(request, env);
     return fail(404, 'Not found.');
   } catch (e) {
     const msg = String(e && e.message || e);

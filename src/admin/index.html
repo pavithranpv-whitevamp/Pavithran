@@ -173,6 +173,23 @@ select.in { appearance: none; background-image: linear-gradient(45deg, transpare
 .vid.is-bad .in { border-color: var(--danger); }
 
 /* Toggle */
+/* Testimonials */
+.tst { padding-top: 16px; padding-bottom: calc(var(--bar-h) + 56px + env(safe-area-inset-bottom)); }
+.share-box { display: flex; gap: 8px; flex-wrap: wrap; align-items: center; background: var(--gold-soft); border-radius: var(--r); padding: 14px; margin-bottom: 14px; }
+.share-box code { flex: 1 1 200px; font: 600 .9rem/1.3 ui-monospace, Menlo, monospace; color: var(--navy); overflow-wrap: anywhere; }
+.share-box .btn { min-height: 40px; padding: 0 14px; font-size: .85rem; }
+.tst-list { list-style: none; margin: 0 0 14px; padding: 0; display: grid; gap: 10px; }
+.tst-item { background: var(--white); border: 1px solid var(--line); border-radius: var(--r); padding: 14px 14px 12px; }
+.tst-item.is-hidden { opacity: .6; }
+.tst-item q { display: block; quotes: "\201C" "\201D"; font-size: .95rem; color: var(--ink); margin: 0 0 10px; display: -webkit-box; -webkit-line-clamp: 3; -webkit-box-orient: vertical; overflow: hidden; }
+.tst-who { font: 700 .92rem/1.3 var(--display); color: var(--navy); }
+.tst-who small { display: block; font: 500 .8rem/1.35 var(--body); color: var(--muted); }
+.tst-tools { display: flex; gap: 6px; flex-wrap: wrap; margin-top: 10px; }
+.tst-tools button { min-height: 36px; padding: 0 12px; border-radius: 10px; border: 1.5px solid var(--line); background: var(--paper); color: var(--navy); font: 600 .82rem/1 var(--display); cursor: pointer; }
+.tst-tools button:hover { border-color: var(--navy); }
+.tst-tools button.rm { color: var(--danger); }
+.tst-tools button:disabled { opacity: .4; cursor: default; }
+.tst-empty { border: 2px dashed var(--mist-edge); border-radius: var(--r); padding: 22px 16px; text-align: center; color: var(--muted); margin-bottom: 14px; }
 .toggle { display: flex; align-items: center; justify-content: space-between; gap: 16px; }
 .toggle input { width: 54px; height: 32px; appearance: none; background: var(--mist-edge); border-radius: 99px; position: relative; cursor: pointer; transition: background .2s; flex: none; margin: 0; }
 .toggle input::after { content: ""; position: absolute; top: 4px; left: 4px; width: 24px; height: 24px; border-radius: 50%; background: var(--white); transition: transform .2s; box-shadow: 0 1px 3px rgba(0,0,0,.25); }
@@ -245,7 +262,10 @@ select.in { appearance: none; background-image: linear-gradient(45deg, transpare
 					<h1>Your work</h1>
 					<p id="head-stats">Loading&hellip;</p>
 				</div>
-				<button class="btn btn--gold" type="button" id="new-btn">Add new work</button>
+				<div style="display:flex;gap:10px;flex-wrap:wrap">
+					<button class="btn btn--line" type="button" id="tst-btn" style="border-color:rgba(245,245,245,.5);color:var(--paper)">Testimonials</button>
+					<button class="btn btn--gold" type="button" id="new-btn">Add new work</button>
+				</div>
 			</div>
 			<div class="ruler" id="ruler" aria-hidden="true"></div>
 		</div>
@@ -338,7 +358,7 @@ select.in { appearance: none; background-image: linear-gradient(45deg, transpare
 					<span class="hint">Newest work is shown first.</span>
 				</div>
 				<div class="toggle">
-					<label for="f-home"><span class="lbl" style="margin:0">Show on the Home page</span><span class="hint" style="margin-top:2px">Home shows the 6 newest projects that have this on.</span></label>
+					<label for="f-home"><span class="lbl" style="margin:0">Show on the Home page</span><span class="hint" style="margin-top:2px">Its videos and designs can appear in the work wall on the Home page.</span></label>
 					<input type="checkbox" id="f-home" checked>
 				</div>
 			</section>
@@ -351,6 +371,54 @@ select.in { appearance: none; background-image: linear-gradient(45deg, transpare
 	</main>
 
 	<!-- Done -->
+	<main class="wrap narrow tst" id="v-tst" hidden>
+		<div class="edit-top">
+			<button class="link-btn" type="button" id="tst-back">&larr; All projects</button>
+			<h2>Testimonials</h2>
+			<p>Words from people you’ve worked with. Published ones appear on your Home and About pages. Only add real testimonials, with the person’s permission.</p>
+		</div>
+		<section class="sec">
+			<h3>Ask your colleagues</h3>
+			<p class="help">Send them this link. What they write comes to your email; copy it in below and publish.</p>
+			<div class="share-box">
+				<code id="tst-link"></code>
+				<button class="btn btn--line" type="button" id="tst-copy">Copy</button>
+				<a class="btn btn--gold" id="tst-wa" target="_blank" rel="noopener">Send on WhatsApp</a>
+			</div>
+		</section>
+		<p class="msg msg--error" id="tst-msg" hidden></p>
+		<p class="lbl" style="margin:22px 2px 10px">On your website <span id="tst-count" style="color:var(--muted);font-weight:500"></span></p>
+		<ul class="tst-list" id="tst-list"></ul>
+		<div class="tst-empty" id="tst-empty" hidden>No testimonials yet. Add the first one below.</div>
+		<form class="sec" id="tst-form" novalidate>
+			<h3 id="tst-form-h">Add a testimonial</h3>
+			<p class="help">Copy their words exactly as they wrote them.</p>
+			<div class="field"><label for="t-name">Their name</label><input class="in" id="t-name" maxlength="80" autocomplete="off"></div>
+			<div class="field"><label for="t-role">Their role <span style="font-weight:500;color:var(--muted)">(optional)</span></label><input class="in" id="t-role" maxlength="80" placeholder="e.g. Senior Video Editor" autocomplete="off"></div>
+			<div class="field"><label for="t-company">Company <span style="font-weight:500;color:var(--muted)">(optional)</span></label><input class="in" id="t-company" maxlength="100" autocomplete="off"></div>
+			<div class="field"><label for="t-rel">How you worked together</label>
+				<select class="in" id="t-rel"><option value="Colleague">Colleague</option><option value="Teammate">Teammate</option><option value="Manager">Manager</option><option value="Client">Client</option><option value="Mentor">Mentor</option><option value="Other">Other</option></select></div>
+			<div class="field"><label for="t-quote">Their words</label><textarea class="in" id="t-quote" rows="5" maxlength="1200"></textarea></div>
+			<div class="field"><label for="t-link">Their LinkedIn link <span style="font-weight:500;color:var(--muted)">(optional)</span></label><input class="in" id="t-link" type="url" inputmode="url" maxlength="300" placeholder="https://www.linkedin.com/in/…" autocomplete="off"></div>
+			<div class="toggle field">
+				<label for="t-show"><span class="lbl" style="margin:0">Show on the website</span><span class="hint" style="margin-top:2px">Turn off to keep it saved but hidden.</span></label>
+				<input type="checkbox" id="t-show" checked>
+			</div>
+			<div style="display:flex;gap:10px;flex-wrap:wrap">
+				<button class="btn btn--gold" type="submit" id="tst-add">Add to the list</button>
+				<button class="btn btn--line" type="button" id="tst-cancel" hidden>Cancel editing</button>
+			</div>
+		</form>
+	</main>
+
+	<div class="bar" id="tst-bar" hidden>
+		<div class="bar-progress"><span id="tst-progress"></span></div>
+		<div class="wrap">
+			<p class="status"><b id="tst-status">No changes yet</b><span id="tst-sub">Changes go live when you press Publish.</span></p>
+			<button class="btn btn--gold" type="button" id="tst-publish">Publish</button>
+		</div>
+	</div>
+
 	<main class="wrap done" id="v-done" hidden>
 		<div class="done-cover" id="done-cover"></div>
 		<h2 id="done-title">Published</h2>
@@ -414,8 +482,9 @@ select.in { appearance: none; background-image: linear-gradient(45deg, transpare
 
 	// ---------- views ----------
 	function show(view) {
-		['v-list', 'v-edit', 'v-done'].forEach(function (v) { $(v).hidden = v !== view; });
+		['v-list', 'v-edit', 'v-done', 'v-tst'].forEach(function (v) { $(v).hidden = v !== view; });
 		$('edit-bar').hidden = view !== 'v-edit';
+		$('tst-bar').hidden = view !== 'v-tst';
 		$('head-hero').hidden = view !== 'v-list';
 		setRuler(view === 'v-list' ? 22 : view === 'v-edit' ? 55 : 92);
 		window.scrollTo(0, 0);
@@ -770,7 +839,7 @@ select.in { appearance: none; background-image: linear-gradient(45deg, transpare
 		if (state.dirty && !confirm('Leave without publishing? Your changes will be lost.')) return;
 		state.dirty = false; show('v-list');
 	});
-	window.addEventListener('beforeunload', function (e) { if (state.dirty || state.busy) { e.preventDefault(); e.returnValue = ''; } });
+	window.addEventListener('beforeunload', function (e) { if (state.dirty || state.busy || tst.dirty || tst.busy) { e.preventDefault(); e.returnValue = ''; } });
 
 	// ---------- publish ----------
 	function setStatus(main, sub, pct) {
@@ -871,6 +940,89 @@ select.in { appearance: none; background-image: linear-gradient(45deg, transpare
 	});
 	$('done-back').addEventListener('click', function () { show('v-list'); });
 	$('done-new').addEventListener('click', function () { openEditor(null); });
+
+
+	// ---------- testimonials ----------
+	var tst = { list: [], editing: -1, dirty: false, busy: false };
+	var RECOMMEND_URL = location.origin + '/recommend/';
+	$('tst-link').textContent = RECOMMEND_URL;
+	$('tst-wa').href = 'https://wa.me/?text=' + encodeURIComponent('Hi! I’m collecting a few words from people I’ve worked with for my portfolio website. If you have 2 minutes, could you write a short testimonial about working with me? ' + RECOMMEND_URL + ' Thank you!');
+	$('tst-copy').addEventListener('click', function () {
+		var done = function () { toast('Link copied'); };
+		if (navigator.clipboard) navigator.clipboard.writeText(RECOMMEND_URL).then(done, function () { prompt('Copy this link:', RECOMMEND_URL); });
+		else prompt('Copy this link:', RECOMMEND_URL);
+	});
+	function tstStatus(main, sub, pct) { $('tst-status').textContent = main; $('tst-sub').textContent = sub || ''; $('tst-progress').style.width = (pct || 0) + '%'; }
+	function tstRender() {
+		var ul = $('tst-list'); ul.innerHTML = '';
+		var shown = tst.list.filter(function (t) { return t.show; }).length;
+		$('tst-count').textContent = tst.list.length ? '· ' + shown + ' shown' + (tst.list.length > shown ? ', ' + (tst.list.length - shown) + ' hidden' : '') : '';
+		$('tst-empty').hidden = !!tst.list.length;
+		tst.list.forEach(function (t, i) {
+			var li = document.createElement('li'); li.className = 'tst-item' + (t.show ? '' : ' is-hidden');
+			var q = document.createElement('q'); q.textContent = t.quote; li.appendChild(q);
+			var who = document.createElement('div'); who.className = 'tst-who'; who.textContent = t.name;
+			var sm = document.createElement('small'); sm.textContent = [[t.role, t.company].filter(Boolean).join(' · '), t.relation].filter(Boolean).join(' — ') + (t.show ? '' : ' (hidden)');
+			who.appendChild(sm); li.appendChild(who);
+			var tools = document.createElement('div'); tools.className = 'tst-tools';
+			function b(label, fn, dis, cls) { var x = document.createElement('button'); x.type = 'button'; x.textContent = label; x.disabled = !!dis; if (cls) x.className = cls; x.addEventListener('click', fn); tools.appendChild(x); }
+			b('Edit', function () { tstEdit(i); });
+			b('↑', function () { tstMove(i, -1); }, i === 0);
+			b('↓', function () { tstMove(i, 1); }, i === tst.list.length - 1);
+			b(t.show ? 'Hide' : 'Show', function () { t.show = !t.show; tstChanged(); });
+			b('Delete', function () { if (confirm('Remove the testimonial from ' + t.name + '?')) { tst.list.splice(i, 1); if (tst.editing === i) tstReset(); tstChanged(); } }, false, 'rm');
+			li.appendChild(tools); ul.appendChild(li);
+		});
+	}
+	function tstChanged() { tst.dirty = true; tstRender(); tstStatus('Not published yet', 'Press Publish to update your website.', 0); }
+	function tstMove(i, d) { var j = i + d; var x = tst.list[i]; tst.list[i] = tst.list[j]; tst.list[j] = x; tstChanged(); }
+	function tstReset() {
+		tst.editing = -1;
+		['t-name', 't-role', 't-company', 't-quote', 't-link'].forEach(function (id) { $(id).value = ''; });
+		$('t-rel').value = 'Colleague'; $('t-show').checked = true;
+		$('tst-form-h').textContent = 'Add a testimonial'; $('tst-add').textContent = 'Add to the list'; $('tst-cancel').hidden = true;
+	}
+	function tstEdit(i) {
+		var t = tst.list[i]; tst.editing = i;
+		$('t-name').value = t.name; $('t-role').value = t.role; $('t-company').value = t.company; $('t-quote').value = t.quote; $('t-link').value = t.link;
+		$('t-rel').value = t.relation || 'Colleague'; $('t-show').checked = t.show;
+		$('tst-form-h').textContent = 'Edit testimonial'; $('tst-add').textContent = 'Save changes'; $('tst-cancel').hidden = false;
+		$('tst-form').scrollIntoView({ behavior: 'smooth', block: 'start' });
+	}
+	$('tst-cancel').addEventListener('click', tstReset);
+	$('tst-form').addEventListener('submit', function (e) {
+		e.preventDefault(); msg($('tst-msg'));
+		var t = { name: $('t-name').value.trim(), role: $('t-role').value.trim(), company: $('t-company').value.trim(), relation: $('t-rel').value, quote: $('t-quote').value.trim(), link: $('t-link').value.trim(), show: $('t-show').checked };
+		if (!t.name) { msg($('tst-msg'), 'Add their name.'); $('t-name').focus(); return; }
+		if (!t.quote) { msg($('tst-msg'), 'Add their words.'); $('t-quote').focus(); return; }
+		if (t.link && !/^https:\/\//i.test(t.link)) { msg($('tst-msg'), 'The LinkedIn link should start with https://'); $('t-link').focus(); return; }
+		if (tst.editing >= 0) { tst.list[tst.editing] = t; toast('Updated'); } else { tst.list.push(t); toast('Added — press Publish when ready'); }
+		tstReset(); tstChanged();
+	});
+	function openTestimonials() {
+		show('v-tst'); tstReset(); msg($('tst-msg'));
+		$('tst-list').innerHTML = ''; $('tst-empty').hidden = true; tstStatus('Loading…', '', 30);
+		api('testimonials').then(function (d) {
+			tst.list = d.testimonials || []; tst.dirty = false; tstRender();
+			tstStatus('No changes yet', 'Changes go live when you press Publish.', 0);
+		}).catch(function (err) { msg($('tst-msg'), err.message); tstStatus('Couldn’t load', '', 0); });
+	}
+	$('tst-btn').addEventListener('click', openTestimonials);
+	$('tst-back').addEventListener('click', function () {
+		if (tst.busy) return;
+		if (tst.dirty && !confirm('Leave without publishing? Your testimonial changes will be lost.')) return;
+		tst.dirty = false; show('v-list');
+	});
+	$('tst-publish').addEventListener('click', function () {
+		if (tst.busy) return;
+		if ($('t-name').value.trim() || $('t-quote').value.trim()) { msg($('tst-msg'), 'You have an unsaved testimonial in the form — press “' + $('tst-add').textContent + '” first, or clear it.'); window.scrollTo(0, 0); return; }
+		tst.busy = true; $('tst-publish').disabled = true; $('tst-publish').textContent = 'Publishing…';
+		tstStatus('Publishing', 'Saving to your website…', 50);
+		api('testimonials', { testimonials: tst.list }).then(function (r) {
+			tst.dirty = false; tstStatus('Published', r.shown + ' shown on your website. It updates in about a minute.', 100); toast('Published');
+		}).catch(function (err) { msg($('tst-msg'), err.message); tstStatus('Not published', 'Fix the problem above, then press Publish again.', 0); window.scrollTo(0, 0); })
+			.then(function () { tst.busy = false; $('tst-publish').disabled = false; $('tst-publish').textContent = 'Publish'; });
+	});
 
 	// ---------- start ----------
 	api('me').then(showApp).catch(function (err) { showLogin(/not set up/i.test(err.message) ? err.message : ''); });

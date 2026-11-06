@@ -121,7 +121,7 @@
 
 	// Portfolio category filter (all projects stay visible if JavaScript is off)
 	var buttons = document.querySelectorAll('[data-filter]');
-	var cards = document.querySelectorAll('.work-grid [data-cats]');
+	var cards = document.querySelectorAll('.work-grid [data-cats], .wall [data-cats]');
 	buttons.forEach(function (btn) {
 		btn.addEventListener('click', function () {
 			var f = btn.getAttribute('data-filter');
@@ -139,7 +139,7 @@
 	});
 
 	// Project images: click to view large, with previous/next and Esc to close
-	var shots = Array.prototype.slice.call(document.querySelectorAll('.entry img'));
+	var shots = Array.prototype.slice.call(document.querySelectorAll('.entry .gallery img'));
 	if (shots.length) {
 		var lb = document.createElement('div');
 		lb.className = 'lightbox';
@@ -168,6 +168,84 @@
 			if (e.key === 'Escape') { hide(); }
 			if (e.key === 'ArrowLeft') { show(cur - 1); }
 			if (e.key === 'ArrowRight') { show(cur + 1); }
+		});
+	}
+
+	// Videos on project pages: show the thumbnail, load YouTube only when someone presses play
+	document.querySelectorAll('.yt-lite').forEach(function (a) {
+		a.addEventListener('click', function (e) {
+			e.preventDefault();
+			var f = document.createElement('iframe');
+			f.src = 'https://www.youtube-nocookie.com/embed/' + a.getAttribute('data-yt') + '?autoplay=1&rel=0&playsinline=1';
+			f.title = a.getAttribute('data-label') || 'Video';
+			f.allow = 'accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture';
+			f.allowFullscreen = true;
+			a.appendChild(f);
+			a.removeAttribute('href');
+		}, { once: true });
+	});
+
+	// On-page player for the work wall: tap a piece to watch it here, arrows for the next one
+	var pieces = Array.prototype.slice.call(document.querySelectorAll('.piece[data-yt], .piece[data-img]'));
+	if (pieces.length) {
+		var pv = document.createElement('div');
+		pv.className = 'player';
+		pv.setAttribute('role', 'dialog');
+		pv.setAttribute('aria-modal', 'true');
+		pv.setAttribute('aria-label', 'Work player');
+		pv.innerHTML = '<div class="player-stage"></div><button class="pv-close" type="button" aria-label="Close">&times;</button><button class="pv-prev" type="button" aria-label="Previous piece">&larr;</button><button class="pv-next" type="button" aria-label="Next piece">&rarr;</button><div class="player-cap"><span class="pt"></span><span class="ct"></span><a class="pp" href="#">Open project &rarr;</a></div>';
+		document.body.appendChild(pv);
+		var stage = pv.querySelector('.player-stage');
+		var plCur = 0, plList = [], opener = null;
+		var visible = function () { return pieces.filter(function (x) { return !x.hidden; }); };
+		var play = function (i) {
+			plCur = (i + plList.length) % plList.length;
+			var el = plList[plCur], yt = el.getAttribute('data-yt');
+			stage.innerHTML = '';
+			pv.classList.toggle('is-short', el.hasAttribute('data-short'));
+			pv.classList.toggle('is-img', !yt);
+			if (yt) {
+				var f = document.createElement('iframe');
+				f.src = 'https://www.youtube-nocookie.com/embed/' + yt + '?autoplay=1&rel=0&playsinline=1';
+				f.title = el.getAttribute('aria-label') || 'Video';
+				f.allow = 'accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture';
+				f.allowFullscreen = true;
+				stage.appendChild(f);
+			} else {
+				var im = document.createElement('img');
+				im.src = el.getAttribute('data-img'); im.alt = el.getAttribute('aria-label') || '';
+				stage.appendChild(im);
+			}
+			pv.querySelector('.pt').textContent = el.getAttribute('data-title') || '';
+			pv.querySelector('.ct').textContent = (plCur + 1) + ' / ' + plList.length;
+			pv.querySelector('.pp').href = el.getAttribute('data-project') || '/portfolio/';
+			var many = plList.length > 1;
+			pv.querySelector('.pv-prev').hidden = !many; pv.querySelector('.pv-next').hidden = !many;
+		};
+		var close = function () {
+			pv.classList.remove('is-open'); stage.innerHTML = ''; document.body.classList.remove('lb-open');
+			if (opener) { opener.focus(); }
+		};
+		pieces.forEach(function (el) {
+			el.addEventListener('click', function (e) {
+				if (e.metaKey || e.ctrlKey || e.shiftKey) { return; }
+				e.preventDefault();
+				opener = el;
+				plList = visible();
+				pv.classList.add('is-open'); document.body.classList.add('lb-open');
+				play(plList.indexOf(el));
+				pv.querySelector('.pv-close').focus();
+			});
+		});
+		pv.querySelector('.pv-close').addEventListener('click', close);
+		pv.querySelector('.pv-prev').addEventListener('click', function () { play(plCur - 1); });
+		pv.querySelector('.pv-next').addEventListener('click', function () { play(plCur + 1); });
+		pv.addEventListener('click', function (e) { if (e.target === pv) { close(); } });
+		document.addEventListener('keydown', function (e) {
+			if (!pv.classList.contains('is-open')) { return; }
+			if (e.key === 'Escape') { close(); }
+			if (e.key === 'ArrowLeft') { play(plCur - 1); }
+			if (e.key === 'ArrowRight') { play(plCur + 1); }
 		});
 	}
 

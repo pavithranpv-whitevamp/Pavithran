@@ -49,6 +49,21 @@ Files: `src/admin/vault/index.html` (the page) and `functions/admin/vault-api/[[
 Cloudflare's free KV plan allows 1 GB of storage in total and about 1,000 saves per day
 (every 20 MB piece of a big file counts as one save).
 
+## Portfolio showcase and testimonials
+
+- **Work wall:** every YouTube video and design in your projects becomes a tile on the Home page
+  (a mix of the newest, from projects with "Show on the Home page" on) and on the Portfolio page
+  ("Every piece"). Tapping a tile plays it right there; arrows go to the next piece. YouTube Shorts
+  links (`youtube.com/shorts/…`) are shown vertical, other links wide. Nothing to set up — it's
+  built from your projects automatically.
+- **Testimonials:** admin page → **Testimonials**. Send colleagues the link
+  **https://pavithran.pages.dev/recommend/** (there's a WhatsApp button for it). What they write
+  arrives in your email; paste it in, then **Publish**. The "Working with me" section appears on
+  Home and About as soon as at least one testimonial is shown, and stays hidden while there are none.
+  Saved in `content/testimonials.json`.
+- **About page:** "My Creative Approach" and "What makes my work different" are in
+  `src/about-me/index.html` (search for `ap-steps` and `dif-grid`) — edit the wording any time.
+
 ## WhatsApp button, recruiter assistant and Career Timeline
 
 - **WhatsApp button + "Cue" (the "Hiring? Ask Cue" chat)** appear on every public page, with gentle animations. Both live in

@@ -55,6 +55,7 @@
 		<h1>Thank you!</h1>
 		<p>Your message is on its way. I&rsquo;ll get back to you as soon as I can.</p>
 		<div class="btn-row"><a class="btn" href="/">Back to home</a><a class="btn btn--gold" href="/portfolio/">See my work</a></div>
+		<script>if (/from=testimonial/.test(location.search)) { var m = document.querySelector('.message'); m.querySelector('.eyebrow').textContent = 'Testimonial sent'; m.querySelector('p').textContent = 'Thank you so much for the kind words — it really means a lot. I’ll add them to my website soon.'; }</script>
 	</div>
 </section>
 </main>

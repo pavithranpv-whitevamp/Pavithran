@@ -147,6 +147,13 @@ select.in { appearance: none; background-image: linear-gradient(45deg, transpare
 .clip.is-cover { box-shadow: 0 0 0 3px var(--gold); }
 .clip-no { position: absolute; left: 6px; top: 6px; min-width: 26px; height: 26px; padding: 0 7px; display: grid; place-items: center; border-radius: 8px; background: rgba(15,44,67,.82); color: var(--paper); font: 700 .78rem/1 var(--display); }
 .clip.is-cover .clip-no { background: var(--gold); color: var(--navy); }
+.cover-box { display: flex; gap: 18px; align-items: center; flex-wrap: wrap; }
+.cover-prev { flex: none; width: 128px; aspect-ratio: 4 / 5; border-radius: var(--r); background: var(--mist) center / cover no-repeat; box-shadow: 0 0 0 3px var(--gold), 0 14px 26px -16px rgba(15,44,67,.55); display: grid; place-items: center; padding: 10px; text-align: center; color: var(--muted); font: 600 .8rem/1.3 var(--display); }
+.cover-side { flex: 1; min-width: 190px; }
+.cover-state { font: 700 1rem/1.3 var(--display); color: var(--navy); margin: 0 0 4px; }
+.cover-btns { display: flex; gap: 8px; flex-wrap: wrap; margin-top: 14px; }
+.cover-btns .btn { min-height: 42px; padding: 0 16px; font-size: .88rem; }
+.cover-btns input { position: absolute; width: 1px; height: 1px; opacity: 0; pointer-events: none; }
 .clip-cover { position: absolute; right: 6px; top: 6px; background: var(--gold); color: var(--navy); font: 700 .72rem/1 var(--display); padding: 6px 8px; border-radius: 8px; }
 .clip-tools { position: absolute; left: 0; right: 0; bottom: 0; display: grid; grid-template-columns: repeat(4, 1fr); gap: 4px; padding: 6px; background: linear-gradient(to top, rgba(15,44,67,.9), rgba(15,44,67,0)); }
 .clip-tools button { min-height: 34px; border: 0; border-radius: 9px; background: rgba(245,245,245,.94); color: var(--navy); font: 700 .9rem/1 var(--display); cursor: pointer; }
@@ -286,8 +293,24 @@ select.in { appearance: none; background-image: linear-gradient(45deg, transpare
 			</section>
 
 			<section class="sec">
+				<h3>Cover image</h3>
+				<p class="help">The picture on this project's card on your Home and Portfolio pages. Upload a separate cover, or pick one of the photos below with ★.</p>
+				<div class="cover-box">
+					<div class="cover-prev" id="cover-prev" role="img" aria-label="Cover preview"></div>
+					<div class="cover-side">
+						<p class="cover-state" id="cover-state"></p>
+						<span class="hint" id="cover-hint"></span>
+						<div class="cover-btns">
+							<label class="btn btn--gold" id="cover-pick-lbl"><input type="file" id="f-cover" accept="image/*"><span id="cover-pick-text">Upload a cover</span></label>
+							<button class="btn btn--line" type="button" id="cover-clear" hidden>Remove cover</button>
+						</div>
+					</div>
+				</div>
+			</section>
+
+			<section class="sec">
 				<h3>Photos</h3>
-				<p class="help">They appear on the project page in this order. The gold one is the cover; tap ★ on another photo to make it the cover.</p>
+				<p class="help">They appear on the project page in this order. Tap ★ on a photo to use it as the cover instead.</p>
 				<div class="track" id="track"></div>
 				<label class="drop" id="drop">
 					<input type="file" id="f-files" accept="image/*" multiple>
@@ -357,7 +380,7 @@ select.in { appearance: none; background-image: linear-gradient(45deg, transpare
 	var DEFAULT_CATS = ['Graphic Design', 'Social Media Posters', 'Branding', 'Motion Graphics', 'Video Editing'];
 	var NEW_CAT = '__new__';
 	var $ = function (id) { return document.getElementById(id); };
-	var state = { projects: [], editing: null, items: [], coverKey: null, extraCover: '', also: [], dirty: false, busy: false };
+	var state = { projects: [], editing: null, items: [], coverKey: null, extraCover: '', coverFile: null, also: [], dirty: false, busy: false };
 	var keySeq = 0;
 
 	// ---------- helpers ----------
@@ -548,7 +571,7 @@ select.in { appearance: none; background-image: linear-gradient(45deg, transpare
 
 	// ---------- editor ----------
 	function openEditor(p) {
-		state.editing = p; state.items = []; state.coverKey = null; state.extraCover = '';
+		state.editing = p; state.items = []; state.coverKey = null; state.extraCover = ''; state.coverFile = null;
 		var cats = p ? (p.categories && p.categories.length ? p.categories : (p.category ? [p.category] : [])) : [];
 		state.also = cats.slice(1);
 		msg($('edit-error'));
@@ -572,6 +595,7 @@ select.in { appearance: none; background-image: linear-gradient(45deg, transpare
 		renderTrack();
 		$('vids').innerHTML = '';
 		(p && p.youtube.length ? p.youtube : ['']).forEach(addVid);
+		renderCover();
 		$('delete-zone').hidden = !p;
 		setStatus(p ? 'No changes yet' : 'Not published yet', 'Changes go live when you press Publish.', 0);
 		state.dirty = false;
@@ -581,9 +605,47 @@ select.in { appearance: none; background-image: linear-gradient(45deg, transpare
 
 	function coverIndex() {
 		if (state.coverKey) for (var i = 0; i < state.items.length; i++) if (state.items[i].key === state.coverKey) return i;
-		return state.extraCover ? -1 : 0;
+		return (state.coverFile || state.extraCover) ? -1 : 0;
 	}
+	function firstVideoThumb() {
+		var inp = $('vids').querySelector('input'), id = inp && ytId(inp.value);
+		return id ? 'https://i.ytimg.com/vi/' + id + '/hqdefault.jpg' : '';
+	}
+	function renderCover() {
+		var ci = coverIndex(), src = '', head, hint, own = !!(state.coverFile || state.extraCover);
+		if (state.coverFile) { src = state.coverFile.preview; head = 'Separate cover'; hint = 'New image — it goes live when you press Publish. It isn’t added to the photos on the project page.'; }
+		else if (state.extraCover) { src = state.extraCover; head = 'Separate cover'; hint = 'Only used on the card; it isn’t one of the photos on the project page.'; }
+		else if (state.items.length) {
+			src = state.items[ci].preview;
+			head = state.coverKey ? 'Photo ' + (ci + 1) + ' from your photos' : 'First photo (automatic)';
+			hint = state.coverKey ? 'Chosen with ★ below.' : 'Upload a separate cover to use a different picture.';
+		} else if ((src = firstVideoThumb())) { head = 'YouTube thumbnail (automatic)'; hint = 'Upload a cover to use your own picture instead.'; }
+		else { head = 'No cover yet'; hint = 'Upload a cover, or add photos below.'; }
+		var box = $('cover-prev');
+		box.style.backgroundImage = src ? 'url("' + src.replace(/"/g, '%22') + '")' : '';
+		box.textContent = src ? '' : 'No cover';
+		$('cover-state').textContent = head; $('cover-hint').textContent = hint;
+		$('cover-pick-text').textContent = own ? 'Change cover' : 'Upload a cover';
+		$('cover-clear').hidden = !(own || state.coverKey);
+	}
+	$('f-cover').addEventListener('change', function () {
+		var file = this.files && this.files[0]; this.value = '';
+		if (!file) return;
+		msg($('edit-error'));
+		setStatus('Preparing cover', file.name, 40);
+		prepareImage(file).then(function (r) {
+			state.coverFile = { kind: 'new', blob: r.blob, ext: r.ext, name: file.name.replace(/\.[^.]+$/, '') + '-cover', preview: URL.createObjectURL(r.blob) };
+			state.coverKey = null; state.extraCover = ''; state.dirty = true;
+			renderTrack(); toast('Cover set');
+			setStatus('Not published yet', 'Press Publish to put the new cover live.', 0);
+		}).catch(function (err) { msg($('edit-error'), err.message); setStatus('Not published yet', '', 0); });
+	});
+	$('cover-clear').addEventListener('click', function () {
+		state.coverFile = null; state.extraCover = ''; state.coverKey = null; state.dirty = true;
+		renderTrack(); toast('Cover removed — the first photo is used');
+	});
 	function renderTrack() {
+		renderCover();
 		var box = $('track'); box.innerHTML = '';
 		var ci = coverIndex();
 		state.items.forEach(function (it, i) {
@@ -594,7 +656,7 @@ select.in { appearance: none; background-image: linear-gradient(45deg, transpare
 			if (i === ci) { var cv = document.createElement('span'); cv.className = 'clip-cover'; cv.textContent = 'Cover'; d.appendChild(cv); }
 			var tools = document.createElement('div'); tools.className = 'clip-tools';
 			tools.appendChild(tool('◀', 'Move photo ' + (i + 1) + ' earlier', i === 0, function () { move(i, -1); }));
-			var star = tool('★', 'Make photo ' + (i + 1) + ' the cover', false, function () { state.coverKey = it.key; state.extraCover = ''; state.dirty = true; renderTrack(); toast('Cover changed'); });
+			var star = tool('★', 'Make photo ' + (i + 1) + ' the cover', false, function () { state.coverKey = it.key; state.extraCover = ''; state.coverFile = null; state.dirty = true; renderTrack(); toast('Cover changed'); });
 			star.setAttribute('aria-pressed', String(i === ci)); tools.appendChild(star);
 			tools.appendChild(tool('▶', 'Move photo ' + (i + 1) + ' later', i === state.items.length - 1, function () { move(i, 1); }));
 			var rm = tool('✕', 'Remove photo ' + (i + 1), false, function () {
@@ -687,7 +749,7 @@ select.in { appearance: none; background-image: linear-gradient(45deg, transpare
 			th.textContent = id ? '' : (inp.value.trim() ? 'Not a YouTube link' : 'Video');
 			row.classList.toggle('is-bad', !!inp.value.trim() && !id);
 		}
-		inp.addEventListener('input', function () { state.dirty = true; refresh(); });
+		inp.addEventListener('input', function () { state.dirty = true; refresh(); if (!state.items.length) renderCover(); });
 		var rm = document.createElement('button');
 		rm.type = 'button'; rm.className = 'rm'; rm.textContent = '✕'; rm.setAttribute('aria-label', 'Remove this video');
 		rm.addEventListener('click', function () { row.remove(); state.dirty = true; if (!$('vids').children.length) addVid(''); });
@@ -744,8 +806,9 @@ select.in { appearance: none; background-image: linear-gradient(45deg, transpare
 		if (!state.items.length && !links.length) { fail('Add at least one photo or a YouTube link.'); return; }
 
 		var newOnes = state.items.filter(function (it) { return it.kind === 'new' && !it.path; });
+		if (state.coverFile && !state.coverFile.path) newOnes.unshift(state.coverFile);
 		var uploads = [];
-		state.items.forEach(function (it) { if (it.kind === 'new' && it.path && it.sha) uploads.push({ path: it.path, sha: it.sha }); });
+		state.items.concat(state.coverFile ? [state.coverFile] : []).forEach(function (it) { if (it.kind === 'new' && it.path && it.sha) uploads.push({ path: it.path, sha: it.sha }); });
 		var done = 0, steps = newOnes.length + 1;
 		setBusy(true);
 		setStatus(newOnes.length ? 'Uploading photos' : 'Publishing', newOnes.length ? 'Photo 1 of ' + newOnes.length : 'Saving to your website…', 4);
@@ -764,7 +827,7 @@ select.in { appearance: none; background-image: linear-gradient(45deg, transpare
 			setStatus('Publishing', 'Saving to your website…', (done + .5) / steps * 100);
 			var images = state.items.map(function (it) { return it.path; });
 			var ci = coverIndex();
-			var cover = ci >= 0 && state.items[ci] ? state.items[ci].path : state.extraCover;
+			var cover = state.coverFile ? state.coverFile.path : (ci >= 0 && state.items[ci] ? state.items[ci].path : state.extraCover);
 			return api('save', {
 				slug: state.editing ? state.editing.slug : null,
 				uploads: uploads,
@@ -778,7 +841,7 @@ select.in { appearance: none; background-image: linear-gradient(45deg, transpare
 			setStatus('Published', '', 100);
 			state.dirty = false; setBusy(false);
 			var ci = coverIndex(), it = state.items[ci >= 0 ? ci : 0];
-			var cov = (it && it.preview) || state.extraCover || (ytId(links[0]) ? 'https://i.ytimg.com/vi/' + ytId(links[0]) + '/hqdefault.jpg' : '');
+			var cov = (state.coverFile && state.coverFile.preview) || (ci < 0 && state.extraCover) || (it && it.preview) || (ytId(links[0]) ? 'https://i.ytimg.com/vi/' + ytId(links[0]) + '/hqdefault.jpg' : '');
 			showDone(state.editing ? 'Changes published' : 'Published', 'Your website updates in about a minute. If the page isn’t there yet, wait a moment and refresh.', r.url, cov, title);
 			loadProjects();
 		}).catch(function (err) {

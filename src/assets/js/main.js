@@ -194,4 +194,87 @@
 			tc.textContent = pad(Math.floor(t / 60) % 60) + ':' + pad(t % 60);
 		}, 1000);
 	}
+	// Career timeline: place each job clip by its dates, move the playhead to today,
+	// and link clips with their cards. Durations keep themselves up to date.
+	var xpMonths = function (s) { var p = s.split('-'); return (+p[0]) * 12 + (+p[1] - 1); };
+	var xpFmt = function (m) {
+		var y = Math.floor(m / 12), r = m % 12, out = [];
+		if (y) { out.push(y + (y === 1 ? ' yr' : ' yrs')); }
+		if (r) { out.push(r + (r === 1 ? ' mo' : ' mos')); }
+		return out.join(' ') || '1 mo';
+	};
+	var xpToday = new Date();
+	var xpNow = xpToday.getFullYear() * 12 + xpToday.getMonth();
+	document.querySelectorAll('.xp-panel').forEach(function (panel) {
+		var tl = panel.querySelector('.xp-tl');
+		var clips = [].slice.call(panel.querySelectorAll('.xp-clip'));
+		var len = function (c) { return (c.dataset.end ? xpMonths(c.dataset.end) : xpNow) - xpMonths(c.dataset.start) + 1; };
+
+		// Stats and the live duration of the current job
+		var design = 0;
+		clips.forEach(function (c) { if (c.hasAttribute('data-design')) { design += len(c); } });
+		var d = panel.querySelector('[data-xp-design]');
+		if (d && design) { d.textContent = Math.floor(design / 12) + '+'; }
+		var cur = panel.querySelector('.xp-clip[data-current]');
+		if (cur) {
+			var cm = len(cur);
+			var cs = panel.querySelector('[data-xp-current]'); if (cs) { cs.textContent = Math.floor(cm / 12) + '+'; }
+			var cd = panel.querySelector('[data-xp-dur]'); if (cd) { cd.textContent = xpFmt(cm); }
+		}
+		if (!tl || !clips.length) { return; }
+
+		var first = Math.min.apply(null, clips.map(function (c) { return xpMonths(c.dataset.start); }));
+		var start = Math.floor(first / 12) * 12;
+		var end = xpNow + 5;
+		var span = end - start;
+		var pct = function (m) { return (m - start) / span * 100; };
+		var r = panel.querySelector('[data-xp-range]'); if (r) { r.textContent = start / 12; }
+		clips.forEach(function (c) {
+			var a = xpMonths(c.dataset.start), b = (c.dataset.end ? xpMonths(c.dataset.end) : xpNow) + 1;
+			c.style.left = pct(a) + '%';
+			c.style.width = (pct(b) - pct(a)) + '%';
+			c.title = c.textContent.replace(/^\s*\S+\s*/, '');
+		});
+		var ruler = tl.querySelector('[data-xp-ruler]');
+		var years = [];
+		for (var y = start / 12; y * 12 <= xpNow; y++) {
+			var mark = document.createElement('span'); mark.className = 'xp-year';
+			mark.style.left = pct(y * 12) + '%';
+			mark.dataset.y = y;
+			ruler.appendChild(mark); years.push(mark);
+		}
+		var ph = tl.querySelector('[data-xp-ph]');
+		var body = tl.querySelector('.xp-body');
+		var layout = function () {
+			var w = body.offsetWidth;
+			clips.forEach(function (c) { c.classList.toggle('is-narrow', c.offsetWidth < 92); });
+			var short = w / span * 12 < 46;
+			years.forEach(function (m) { m.textContent = short ? '’' + String(m.dataset.y).slice(2) : m.dataset.y; });
+			ruler.style.setProperty('--xp-month', Math.max(3, w / span) + 'px');
+			tl.style.setProperty('--xp-start', body.offsetLeft + 'px');
+			tl.style.setProperty('--xp-now', (body.offsetLeft + w * pct(xpNow + xpToday.getDate() / 31) / 100) + 'px');
+		};
+		layout();
+		window.addEventListener('resize', layout);
+		if ('IntersectionObserver' in window) {
+			var seen = new IntersectionObserver(function (es) {
+				es.forEach(function (e) { if (e.isIntersecting) { tl.classList.add('is-in'); seen.disconnect(); } });
+			}, { threshold: 0.35 });
+			seen.observe(tl);
+		} else { tl.classList.add('is-in'); }
+
+		clips.forEach(function (c) {
+			var card = document.getElementById(c.dataset.target);
+			if (!card) { return; }
+			var on = function (v) { c.classList.toggle('is-on', v); card.classList.toggle('is-on', v); };
+			c.addEventListener('mouseenter', function () { on(true); });
+			c.addEventListener('mouseleave', function () { on(false); });
+			card.addEventListener('mouseenter', function () { on(true); });
+			card.addEventListener('mouseleave', function () { on(false); });
+			c.addEventListener('click', function () {
+				card.classList.remove('is-flash'); void card.offsetWidth; card.classList.add('is-flash');
+				card.scrollIntoView({ behavior: calm ? 'auto' : 'smooth', block: 'nearest' });
+			});
+		});
+	});
 })();

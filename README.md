@@ -49,6 +49,17 @@ Files: `src/admin/vault/index.html` (the page) and `functions/admin/vault-api/[[
 Cloudflare's free KV plan allows 1 GB of storage in total and about 1,000 saves per day
 (every 20 MB piece of a big file counts as one save).
 
+## WhatsApp button, recruiter assistant and Career Timeline
+
+- **WhatsApp button + "Hiring? Ask me" chat** appear on every public page. Both live in
+  `src/assets/js/assistant.js`: change the WhatsApp number in `WA_NUMBER`, and edit any answer in
+  the `ANSWERS` list (each has the words that trigger it and the reply). It's free and needs no server —
+  it answers from the facts written there, and sends anything it can't answer to WhatsApp.
+- **Career Timeline** (Home and About pages) is in `src/index.html` and `src/about-me/index.html`
+  (search for `xp-panel`). Each job is a clip with `data-start` / `data-end` (YYYY-MM); leave out
+  `data-end` for your current job. Durations and the "years" numbers update themselves.
+  When you change jobs, update the job list in `assistant.js` too.
+
 ## How the site is organised
 
 | Folder / file | What it is |

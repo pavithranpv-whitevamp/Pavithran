@@ -68,15 +68,13 @@
 				<li>Something I did well, or what stood out</li>
 				<li>Whether you&rsquo;d work with me again</li>
 			</ul>
-			<p class="rec-note">Your words go straight to me by email. I&rsquo;ll only show them on my website exactly as you wrote them, with your name and role &mdash; and only if you tick the box.</p>
+			<p class="rec-note">Your words come straight to me. I&rsquo;ll only show them on my website exactly as you wrote them, with your name and role &mdash; and only if you tick the box.</p>
 		</div>
 		<div class="form-panel">
 			<h2>Your testimonial</h2>
-			<form class="contact-form" action="https://formsubmit.co/Pavithranwv@gmail.com" method="POST">
-				<input type="hidden" name="_subject" value="New testimonial for your website">
-				<input type="hidden" name="_next" id="r-next" value="">
-				<input type="hidden" name="_template" value="table">
-				<input class="hp" type="text" name="_honey" tabindex="-1" autocomplete="off" aria-hidden="true">
+			<p class="msg-err" id="r-err" role="alert" hidden></p>
+			<form class="contact-form" action="/api/recommend" method="POST">
+				<input class="hp" type="text" name="website" tabindex="-1" autocomplete="off" aria-hidden="true">
 				<div class="field"><label for="r-name">Your name</label><input type="text" id="r-name" name="name" maxlength="80" required></div>
 				<div class="field"><label for="r-email">Your email <span class="opt">(not shown publicly)</span></label><input type="email" id="r-email" name="email" required></div>
 				<div class="field"><label for="r-role">Your role</label><input type="text" id="r-role" name="role" maxlength="80" placeholder="e.g. Senior Video Editor"></div>
@@ -88,7 +86,14 @@
 				<label class="rec-ok"><input type="checkbox" name="ok_to_publish" value="Yes — OK to show on the website with my name and role" required> It&rsquo;s OK to show this on Pavithran&rsquo;s website with my name and role.</label>
 				<button type="submit">Send testimonial</button>
 			</form>
-			<script>document.getElementById('r-next').value = location.origin + '/thanks/?from=testimonial';</script>
+			<script>
+			(function () {
+				var e = (location.search.match(/[?&]e=(\w+)/) || [])[1];
+				var msgs = { missing: 'Please add your name and your words, and tick the box to say it can be shown.', busy: 'Too many tries from this connection — please try again in an hour.', setup: 'Sorry, the form isn\u2019t working right now. Please send your words to Pavithran on WhatsApp.', form: 'Something went wrong — please try again.' };
+				if (e && msgs[e]) { var el = document.getElementById('r-err'); el.textContent = msgs[e]; el.hidden = false; }
+				document.querySelector('.rec form').addEventListener('submit', function () { var b = this.querySelector('button[type=submit]'); b.disabled = true; b.textContent = 'Sending\u2026'; });
+			})();
+			</script>
 		</div>
 	</div>
 </section>

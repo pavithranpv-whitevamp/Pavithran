@@ -239,6 +239,31 @@ async function saveTestimonials(request, env) {
   return json({ ok: true, count: list.length, shown });
 }
 
+// New testimonials sent by colleagues from /recommend/ (stored in the VAULT KV by functions/api/recommend.js)
+async function listSubmissions(env) {
+  if (!env.VAULT) return json({ submissions: [], note: 'Storage (VAULT) is not connected.' });
+  const keys = [];
+  let cursor;
+  do {
+    const r = await env.VAULT.list({ prefix: 'tsub:', cursor, limit: 1000 });
+    keys.push(...r.keys);
+    cursor = r.list_complete ? null : r.cursor;
+  } while (cursor);
+  const items = await Promise.all(keys.slice(0, 100).map(async (k) => {
+    const v = await env.VAULT.get(k.name, { type: 'json' }).catch(() => null);
+    return v ? { id: k.name.slice(5), ...v } : null;
+  }));
+  return json({ submissions: items.filter(Boolean).sort((a, b) => String(b.at).localeCompare(String(a.at))) });
+}
+
+async function dismissSubmissions(request, env) {
+  if (!env.VAULT) return fail(503, 'Storage (VAULT) is not connected.');
+  const body = await request.json().catch(() => ({}));
+  const ids = (Array.isArray(body.ids) ? body.ids : []).map(String).filter((i) => /^[a-z0-9]+-[0-9a-f]{12}$/.test(i)).slice(0, 100);
+  await Promise.all(ids.map((i) => env.VAULT.delete('tsub:' + i)));
+  return json({ ok: true, removed: ids.length });
+}
+
 // ---------- routes ----------
 async function login(request, env) {
   const body = await request.json().catch(() => ({}));
@@ -345,6 +370,8 @@ export async function onRequest(context) {
     if (route === 'delete' && method === 'POST') return await deleteProject(request, env);
     if (route === 'testimonials' && method === 'GET') return await getTestimonials(env);
     if (route === 'testimonials' && method === 'POST') return await saveTestimonials(request, env);
+    if (route === 'submissions' && method === 'GET') return await listSubmissions(env);
+    if (route === 'submissions-dismiss' && method === 'POST') return await dismissSubmissions(request, env);
     return fail(404, 'Not found.');
   } catch (e) {
     const msg = String(e && e.message || e);

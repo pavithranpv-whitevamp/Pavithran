@@ -58,7 +58,9 @@ Cloudflare's free KV plan allows 1 GB of storage in total and about 1,000 saves 
   built from your projects automatically.
 - **Testimonials:** admin page → **Testimonials**. Send colleagues the link
   **https://pavithran.pages.dev/recommend/** (there's a WhatsApp button for it). What they write
-  arrives in your email; paste it in, then **Publish**. The "Working with me" section appears on
+  is saved on the site (in the VAULT storage, by `functions/api/recommend.js`) and shows up in
+  admin → Testimonials → **New from colleagues** (the button gets a number badge). Tap
+  **Add to website**, then **Publish**. Nothing goes live until you publish. The "Working with me" section appears on
   Home and About as soon as at least one testimonial is shown, and stays hidden while there are none.
   Saved in `content/testimonials.json`.
 - **About page:** "My Creative Approach" and "What makes my work different" are in

@@ -189,6 +189,12 @@ select.in { appearance: none; background-image: linear-gradient(45deg, transpare
 .tst-tools button:hover { border-color: var(--navy); }
 .tst-tools button.rm { color: var(--danger); }
 .tst-tools button:disabled { opacity: .4; cursor: default; }
+.tst-new { list-style: none; margin: 0 0 14px; padding: 0; display: grid; gap: 10px; }
+.tst-new li { background: var(--gold-soft); border: 1.5px solid var(--gold); border-radius: var(--r); padding: 14px; }
+.tst-new q { display: block; quotes: "\201C" "\201D"; font-size: .95rem; color: var(--ink); margin: 0 0 10px; white-space: pre-line; }
+.tst-new .meta { font-size: .8rem; color: var(--muted); margin-top: 2px; }
+.tst-new .tst-tools button.add { background: var(--navy); color: var(--paper); border-color: var(--navy); }
+.badge-new { display: inline-grid; place-items: center; min-width: 22px; height: 22px; padding: 0 6px; margin-left: 6px; border-radius: 99px; background: var(--gold); color: var(--navy); font: 800 .75rem/1 var(--display); }
 .tst-empty { border: 2px dashed var(--mist-edge); border-radius: var(--r); padding: 22px 16px; text-align: center; color: var(--muted); margin-bottom: 14px; }
 .toggle { display: flex; align-items: center; justify-content: space-between; gap: 16px; }
 .toggle input { width: 54px; height: 32px; appearance: none; background: var(--mist-edge); border-radius: 99px; position: relative; cursor: pointer; transition: background .2s; flex: none; margin: 0; }
@@ -379,7 +385,7 @@ select.in { appearance: none; background-image: linear-gradient(45deg, transpare
 		</div>
 		<section class="sec">
 			<h3>Ask your colleagues</h3>
-			<p class="help">Send them this link. What they write comes to your email; copy it in below and publish.</p>
+			<p class="help">Send them this link. What they write appears here under “New from colleagues” — tap “Add to website”, then Publish.</p>
 			<div class="share-box">
 				<code id="tst-link"></code>
 				<button class="btn btn--line" type="button" id="tst-copy">Copy</button>
@@ -387,6 +393,10 @@ select.in { appearance: none; background-image: linear-gradient(45deg, transpare
 			</div>
 		</section>
 		<p class="msg msg--error" id="tst-msg" hidden></p>
+		<div id="tst-new-box" hidden>
+			<p class="lbl" style="margin:22px 2px 10px">New from colleagues <span id="tst-new-count" style="color:var(--muted);font-weight:500"></span></p>
+			<ul class="tst-new" id="tst-new"></ul>
+		</div>
 		<p class="lbl" style="margin:22px 2px 10px">On your website <span id="tst-count" style="color:var(--muted);font-weight:500"></span></p>
 		<ul class="tst-list" id="tst-list"></ul>
 		<div class="tst-empty" id="tst-empty" hidden>No testimonials yet. Add the first one below.</div>
@@ -494,7 +504,7 @@ select.in { appearance: none; background-image: linear-gradient(45deg, transpare
 		msg($('login-error'), text || '');
 		setTimeout(function () { ($('l-user').value ? $('l-pass') : $('l-user')).focus(); }, 50);
 	}
-	function showApp() { $('v-login').hidden = true; $('v-app').hidden = false; show('v-list'); loadProjects(); }
+	function showApp() { $('v-login').hidden = true; $('v-app').hidden = false; show('v-list'); loadProjects(); setTimeout(function () { if (typeof loadSubs === 'function') loadSubs(); }, 0); }
 
 	// ---------- login ----------
 	$('pass-toggle').addEventListener('click', function () {
@@ -999,9 +1009,54 @@ select.in { appearance: none; background-image: linear-gradient(45deg, transpare
 		if (tst.editing >= 0) { tst.list[tst.editing] = t; toast('Updated'); } else { tst.list.push(t); toast('Added — press Publish when ready'); }
 		tstReset(); tstChanged();
 	});
+	// New testimonials sent from the /recommend/ form
+	tst.subs = []; tst.added = [];
+	function newBadge(n) {
+		var b = $('tst-btn'); var x = b.querySelector('.badge-new');
+		if (n) { if (!x) { x = document.createElement('span'); x.className = 'badge-new'; b.appendChild(x); } x.textContent = n; }
+		else if (x) x.remove();
+	}
+	function loadSubs() {
+		return api('submissions').then(function (d) { tst.subs = d.submissions || []; newBadge(tst.subs.length); renderSubs(); }).catch(function () {});
+	}
+	function renderSubs() {
+		var list = tst.subs.filter(function (x) { return tst.added.indexOf(x.id) === -1; });
+		$('tst-new-box').hidden = !list.length;
+		$('tst-new-count').textContent = list.length ? '· ' + list.length : '';
+		var ul = $('tst-new'); ul.innerHTML = '';
+		list.forEach(function (x) {
+			var li = document.createElement('li');
+			var q = document.createElement('q'); q.textContent = x.quote; li.appendChild(q);
+			var who = document.createElement('div'); who.className = 'tst-who'; who.textContent = x.name;
+			var sm = document.createElement('small'); sm.textContent = [[x.role, x.company].filter(Boolean).join(' · '), x.relation].filter(Boolean).join(' — '); who.appendChild(sm); li.appendChild(who);
+			var meta = document.createElement('div'); meta.className = 'meta';
+			meta.textContent = 'Sent ' + new Date(x.at).toLocaleString() + (x.email ? ' · ' + x.email : '') + (x.ok ? ' · OK to show on the website' : '');
+			li.appendChild(meta);
+			var tools = document.createElement('div'); tools.className = 'tst-tools';
+			var add = document.createElement('button'); add.type = 'button'; add.className = 'add'; add.textContent = 'Add to website';
+			add.addEventListener('click', function () {
+				tst.list.unshift({ name: x.name, role: x.role || '', company: x.company || '', relation: x.relation || 'Colleague', quote: x.quote, link: x.link || '', show: true });
+				tst.added.push(x.id); renderSubs(); tstChanged(); toast('Added — press Publish to put it live');
+			});
+			var edit = document.createElement('button'); edit.type = 'button'; edit.textContent = 'Edit first';
+			edit.addEventListener('click', function () {
+				tst.list.unshift({ name: x.name, role: x.role || '', company: x.company || '', relation: x.relation || 'Colleague', quote: x.quote, link: x.link || '', show: true });
+				tst.added.push(x.id); renderSubs(); tstChanged(); tstEdit(0);
+			});
+			var del = document.createElement('button'); del.type = 'button'; del.className = 'rm'; del.textContent = 'Dismiss';
+			del.addEventListener('click', function () {
+				if (!confirm('Dismiss the testimonial from ' + x.name + '? It will be deleted.')) return;
+				api('submissions-dismiss', { ids: [x.id] }).then(function () { tst.subs = tst.subs.filter(function (y) { return y.id !== x.id; }); newBadge(tst.subs.length); renderSubs(); toast('Dismissed'); })
+					.catch(function (err) { msg($('tst-msg'), err.message); });
+			});
+			tools.appendChild(add); tools.appendChild(edit); tools.appendChild(del); li.appendChild(tools);
+			ul.appendChild(li);
+		});
+	}
 	function openTestimonials() {
 		show('v-tst'); tstReset(); msg($('tst-msg'));
 		$('tst-list').innerHTML = ''; $('tst-empty').hidden = true; tstStatus('Loading…', '', 30);
+		tst.added = []; renderSubs(); loadSubs();
 		api('testimonials').then(function (d) {
 			tst.list = d.testimonials || []; tst.dirty = false; tstRender();
 			tstStatus('No changes yet', 'Changes go live when you press Publish.', 0);
@@ -1020,6 +1075,10 @@ select.in { appearance: none; background-image: linear-gradient(45deg, transpare
 		tstStatus('Publishing', 'Saving to your website…', 50);
 		api('testimonials', { testimonials: tst.list }).then(function (r) {
 			tst.dirty = false; tstStatus('Published', r.shown + ' shown on your website. It updates in about a minute.', 100); toast('Published');
+			if (tst.added.length) {
+				var done = tst.added.slice();
+				api('submissions-dismiss', { ids: done }).then(function () { tst.subs = tst.subs.filter(function (y) { return done.indexOf(y.id) === -1; }); tst.added = []; newBadge(tst.subs.length); renderSubs(); }).catch(function () {});
+			}
 		}).catch(function (err) { msg($('tst-msg'), err.message); tstStatus('Not published', 'Fix the problem above, then press Publish again.', 0); window.scrollTo(0, 0); })
 			.then(function () { tst.busy = false; $('tst-publish').disabled = false; $('tst-publish').textContent = 'Publish'; });
 	});

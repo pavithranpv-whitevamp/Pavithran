@@ -772,3 +772,5 @@ body.lb-open { overflow: hidden; }
 .rec .contact-form select:focus, .rec .contact-form input[type=url]:focus { outline: 3px solid var(--gold); outline-offset: 0; }
 .rec .contact-form label.rec-ok { display: flex; gap: .7rem; align-items: flex-start; font: 500 .92rem/1.45 var(--font-body); color: var(--charcoal); margin: .2rem 0 1.3rem; cursor: pointer; }
 .rec-ok input { width: 1.2rem; height: 1.2rem; margin-top: .1rem; accent-color: var(--navy); flex: none; }
+
+.msg-err { background: #FCEBEA; color: #B3261E; border-radius: 14px; padding: .9rem 1.1rem; margin: 0 0 1.2rem; font-size: .95rem; }

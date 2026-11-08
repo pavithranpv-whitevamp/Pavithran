@@ -155,17 +155,20 @@ function normaliseProject(input) {
   const categories = [input.category, ...(Array.isArray(input.categories) ? input.categories : [])]
     .map((c) => clean(c, 60)).filter(Boolean)
     .filter((c, i, a) => a.findIndex((x) => x.toLowerCase() === c.toLowerCase()) === i).slice(0, 12);
+  // uploads switched off: only keep entries that are still in this project
+  const hidden = (Array.isArray(input.hidden) ? input.hidden : []).map((h) => String(h || '').trim())
+    .filter((h, i, a) => h && a.indexOf(h) === i && (images.includes(h) || youtube.includes(h))).slice(0, 250);
   return {
     title: clean(input.title, 120),
     category: categories[0] || '',
     categories,
     date,
     show_on_home: input.show_on_home !== false,
-    published: input.published !== false,
     cover,
     description: clean(input.description, 5000),
     youtube,
     images,
+    hidden,
   };
 }
 
@@ -181,11 +184,11 @@ function parseProjectFile(name, text) {
       .filter((c, i, a) => a.findIndex((x) => x.toLowerCase() === c.toLowerCase()) === i),
     date: d.date || '',
     show_on_home: d.show_on_home !== false,
-    published: d.published !== false,
     cover: d.cover ? '/' + String(d.cover).replace(/^\/+/, '') : '',
     description: d.description || '',
     youtube: asList(d.youtube),
     images: asList(d.images).map((p) => (/^https?:/.test(p) ? p : '/' + p.replace(/^\/+/, ''))),
+    hidden: (Array.isArray(d.hidden) ? d.hidden : []).map((h) => { h = String(h || '').trim(); return /^https?:|^\//.test(h) || !h ? h : '/' + h; }).filter(Boolean),
     broken: !!d._broken,
   };
 }
@@ -330,24 +333,6 @@ async function saveProject(request, env) {
   return json({ ok: true, slug, url: `/work/${slug}/` });
 }
 
-// Switch a project on (shown on the website) or off (kept, but hidden) without touching anything else in it
-async function setVisibility(request, env) {
-  const body = await request.json().catch(() => ({}));
-  const slug = String(body.slug || '');
-  if (!SLUG_RE.test(slug)) return fail(400, 'Unknown project.');
-  const api = gh(env);
-  const file = (await api.listProjects()).find((f) => f.name === `${slug}.json`);
-  if (!file) return fail(404, 'That project no longer exists. Reload the page and try again.');
-  let d;
-  try { d = JSON.parse(file.object.text) || {}; } catch { return fail(400, 'This project file is damaged. Open it and press Publish to repair it.'); }
-  const on = body.published !== false;
-  d.published = on;
-  await api.commit(`${on ? 'Show' : 'Hide'} project "${d.title || slug}" (via website admin)`, [
-    { path: `${PROJECTS_DIR}/${slug}.json`, content: JSON.stringify(d, null, 2) + '\n' },
-  ]);
-  return json({ ok: true, published: on });
-}
-
 async function deleteProject(request, env) {
   const body = await request.json().catch(() => ({}));
   const slug = String(body.slug || '');
@@ -388,7 +373,6 @@ export async function onRequest(context) {
     if (route === 'upload' && method === 'POST') return await uploadImage(request, env);
     if (route === 'save' && method === 'POST') return await saveProject(request, env);
     if (route === 'delete' && method === 'POST') return await deleteProject(request, env);
-    if (route === 'visibility' && method === 'POST') return await setVisibility(request, env);
     if (route === 'testimonials' && method === 'GET') return await getTestimonials(env);
     if (route === 'testimonials' && method === 'POST') return await saveTestimonials(request, env);
     if (route === 'submissions' && method === 'GET') return await listSubmissions(env);

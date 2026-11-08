@@ -197,18 +197,6 @@ a { color: var(--navy); }
 .tile-letter { position: absolute; inset: 0; display: grid; place-items: center; font: 800 3.4rem/1 var(--display); color: var(--paper); }
 .tile-counts { position: absolute; z-index: 1; left: 8px; bottom: 8px; display: flex; gap: 6px; }
 .tile-counts span { background: rgba(15,44,67,.82); color: var(--paper); font: 600 .74rem/1 var(--display); padding: 6px 8px; border-radius: 8px; }
-.tile-off .tile-media { opacity: .4; filter: grayscale(.7); }
-.tile-off .tile-title { color: var(--muted); }
-.tile-foot { display: flex; align-items: center; justify-content: space-between; gap: 8px; margin: 8px 2px 0; padding-top: 8px; border-top: 1px solid var(--line); }
-.tile-state { font: 700 .74rem/1 var(--display); letter-spacing: .04em; text-transform: uppercase; color: #198754; display: inline-flex; align-items: center; gap: 6px; }
-.tile-state::before { content: ""; width: 8px; height: 8px; border-radius: 50%; background: currentColor; }
-.tile-off .tile-state { color: var(--muted); }
-.sw { position: relative; width: 46px; height: 26px; flex: none; border: 0; border-radius: 99px; background: var(--mist-edge); cursor: pointer; transition: background .2s; padding: 0; }
-.sw::after { content: ""; position: absolute; top: 3px; left: 3px; width: 20px; height: 20px; border-radius: 50%; background: #fff; box-shadow: 0 1px 3px rgba(0,0,0,.25); transition: transform .2s; }
-.sw[aria-checked="true"] { background: #198754; }
-.sw[aria-checked="true"]::after { transform: translateX(20px); }
-.sw:disabled { opacity: .55; cursor: wait; }
-.sw:focus-visible { outline: 3px solid var(--gold); outline-offset: 2px; }
 .tile-hidden { position: absolute; right: 8px; top: 8px; background: var(--paper); color: var(--navy); font: 600 .72rem/1 var(--display); padding: 6px 8px; border-radius: 8px; }
 .tile-title { display: block; font: 700 1rem/1.25 var(--display); color: var(--navy); margin: 10px 2px 2px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 .tile-cat { display: block; font-size: .84rem; color: var(--muted); margin: 0 2px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
@@ -249,8 +237,18 @@ select.in { appearance: none; background-image: linear-gradient(45deg, transpare
 /* Photos as clips on a track */
 .track { display: grid; grid-template-columns: repeat(auto-fill, minmax(132px, 1fr)); gap: 10px; margin-bottom: 12px; }
 @media (max-width: 380px) { .track { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
-.clip { position: relative; border-radius: 14px; overflow: hidden; background: var(--mist); aspect-ratio: 1; }
-.clip img { width: 100%; height: 100%; object-fit: cover; }
+.clip { position: relative; border-radius: 14px; overflow: hidden; background: var(--white); border: 1px solid var(--line); }
+.clip img { display: block; width: 100%; aspect-ratio: 1; object-fit: cover; background: var(--mist); transition: opacity .2s, filter .2s; }
+.clip-foot { display: flex; align-items: center; justify-content: space-between; gap: 6px; height: 42px; padding: 0 8px 0 10px; }
+.up-state { font: 700 .7rem/1 var(--display); letter-spacing: .05em; text-transform: uppercase; color: #198754; display: inline-flex; align-items: center; gap: 5px; }
+.up-state::before { content: ""; width: 7px; height: 7px; border-radius: 50%; background: currentColor; }
+.is-off .up-state { color: var(--muted); }
+.clip.is-off img, .vid.is-off .vid-thumb { opacity: .35; filter: grayscale(.8); }
+.sw { position: relative; width: 44px; height: 26px; flex: none; border: 0; border-radius: 99px; background: var(--mist-edge); cursor: pointer; transition: background .2s; padding: 0; }
+.sw::after { content: ""; position: absolute; top: 3px; left: 3px; width: 20px; height: 20px; border-radius: 50%; background: #fff; box-shadow: 0 1px 3px rgba(0,0,0,.25); transition: transform .2s; }
+.sw[aria-checked="true"] { background: #198754; }
+.sw[aria-checked="true"]::after { transform: translateX(18px); }
+.sw:focus-visible { outline: 3px solid var(--gold); outline-offset: 2px; }
 .clip.is-cover { box-shadow: 0 0 0 3px var(--gold); }
 .clip-no { position: absolute; left: 6px; top: 6px; min-width: 26px; height: 26px; padding: 0 7px; display: grid; place-items: center; border-radius: 8px; background: rgba(15,44,67,.82); color: var(--paper); font: 700 .78rem/1 var(--display); }
 .clip.is-cover .clip-no { background: var(--gold); color: var(--navy); }
@@ -262,7 +260,7 @@ select.in { appearance: none; background-image: linear-gradient(45deg, transpare
 .cover-btns .btn { min-height: 42px; padding: 0 16px; font-size: .88rem; }
 .cover-btns input { position: absolute; width: 1px; height: 1px; opacity: 0; pointer-events: none; }
 .clip-cover { position: absolute; right: 6px; top: 6px; background: var(--gold); color: var(--navy); font: 700 .72rem/1 var(--display); padding: 6px 8px; border-radius: 8px; }
-.clip-tools { position: absolute; left: 0; right: 0; bottom: 0; display: grid; grid-template-columns: repeat(4, 1fr); gap: 4px; padding: 6px; background: linear-gradient(to top, rgba(15,44,67,.9), rgba(15,44,67,0)); }
+.clip-tools { position: absolute; left: 0; right: 0; bottom: 42px; display: grid; grid-template-columns: repeat(4, 1fr); gap: 4px; padding: 6px; background: linear-gradient(to top, rgba(15,44,67,.9), rgba(15,44,67,0)); }
 .clip-tools button { min-height: 34px; border: 0; border-radius: 9px; background: rgba(245,245,245,.94); color: var(--navy); font: 700 .9rem/1 var(--display); cursor: pointer; }
 .clip-tools button.rm { color: var(--danger); }
 .clip-tools button:disabled { opacity: .3; cursor: default; }
@@ -274,7 +272,9 @@ select.in { appearance: none; background-image: linear-gradient(45deg, transpare
 
 /* Video rows */
 .vids { display: grid; gap: 10px; margin-bottom: 6px; }
-.vid { display: grid; grid-template-columns: 72px 1fr 48px; gap: 10px; align-items: center; }
+.vid { display: grid; grid-template-columns: 72px 1fr auto 48px; gap: 10px; align-items: center; }
+.vid-sw { display: flex; flex-direction: column; align-items: center; gap: 4px; }
+.vid-sw .up-state { font-size: .62rem; }
 .vid-thumb { width: 72px; aspect-ratio: 16 / 9; border-radius: 8px; background: var(--mist) center / cover no-repeat; display: grid; place-items: center; color: var(--muted); font-size: .7rem; text-align: center; }
 .vid .rm { width: 48px; min-height: 50px; border-radius: 12px; border: 0; background: var(--paper); color: var(--danger); font: 700 1.05rem/1 var(--display); cursor: pointer; }
 .vid.is-bad .in { border-color: var(--danger); }
@@ -506,7 +506,7 @@ select.in { appearance: none; background-image: linear-gradient(45deg, transpare
 
 			<section class="sec">
 				<h3>Photos</h3>
-				<p class="help">They appear on the project page in this order. Tap ★ on a photo to use it as the cover instead.</p>
+				<p class="help">They appear on the project page in this order. Tap ★ on a photo to use it as the cover instead. Switch a photo off to hide it from your website without deleting it.</p>
 				<div class="track" id="track"></div>
 				<label class="drop" id="drop">
 					<input type="file" id="f-files" accept="image/*" multiple>
@@ -517,7 +517,7 @@ select.in { appearance: none; background-image: linear-gradient(45deg, transpare
 
 			<section class="sec">
 				<h3>YouTube videos</h3>
-				<p class="help">Paste a link from YouTube's Share &rarr; Copy link. Each video plays on the project page. It must be Public or Unlisted.</p>
+				<p class="help">Paste a link from YouTube's Share &rarr; Copy link. Each video plays on the project page. It must be Public or Unlisted. Switch a video off to hide it without removing it.</p>
 				<div class="vids" id="vids"></div>
 				<button class="link-btn" type="button" id="vid-add">+ Add another video</button>
 			</section>
@@ -532,10 +532,6 @@ select.in { appearance: none; background-image: linear-gradient(45deg, transpare
 					<label for="f-date">Date</label>
 					<input class="in" type="date" id="f-date">
 					<span class="hint">Newest work is shown first.</span>
-				</div>
-				<div class="toggle">
-					<label for="f-live"><span class="lbl" style="margin:0">Show on my website</span><span class="hint" style="margin-top:2px">Switch off to hide this project everywhere on the site. Nothing is deleted &mdash; switch it back on any time.</span></label>
-					<input type="checkbox" id="f-live" checked>
 				</div>
 				<div class="toggle">
 					<label for="f-home"><span class="lbl" style="margin:0">Show on the Home page</span><span class="hint" style="margin-top:2px">Its videos and designs can appear in the work wall on the Home page.</span></label>
@@ -754,10 +750,10 @@ select.in { appearance: none; background-image: linear-gradient(45deg, transpare
 		return cats;
 	}
 	function renderList() {
-		var ps = state.projects, photos = 0, videos = 0, off = 0;
-		ps.forEach(function (p) { photos += p.images.length; videos += p.youtube.length; if (p.published === false) off++; });
+		var ps = state.projects, photos = 0, videos = 0;
+		ps.forEach(function (p) { photos += p.images.length; videos += p.youtube.length; });
 		$('head-stats').textContent = ps.length
-			? plural(ps.length, 'project', 'projects') + ', ' + plural(photos, 'photo', 'photos') + ' and ' + plural(videos, 'video', 'videos') + '.' + (off ? ' ' + off + ' switched off (hidden from your website).' : ' Use the switch on a project to hide or show it.')
+			? plural(ps.length, 'project', 'projects') + ', ' + plural(photos, 'photo', 'photos') + ' and ' + plural(videos, 'video', 'videos') + ' on your website.'
 			: 'Nothing on your website yet.';
 		var ul = $('bin'); ul.innerHTML = '';
 		if (!ps.length) {
@@ -779,8 +775,9 @@ select.in { appearance: none; background-image: linear-gradient(45deg, transpare
 			var counts = document.createElement('span'); counts.className = 'tile-counts';
 			if (p.images.length) { var a = document.createElement('span'); a.textContent = plural(p.images.length, 'photo', 'photos'); counts.appendChild(a); }
 			if (p.youtube.length) { var v = document.createElement('span'); v.textContent = plural(p.youtube.length, 'video', 'videos'); counts.appendChild(v); }
+			if (p.hidden && p.hidden.length) { var hd = document.createElement('span'); hd.textContent = p.hidden.length + ' hidden'; counts.appendChild(hd); }
 			media.appendChild(counts);
-			if (p.published !== false && !p.show_on_home) { var h = document.createElement('span'); h.className = 'tile-hidden'; h.textContent = 'Not on Home'; media.appendChild(h); }
+			if (!p.show_on_home) { var h = document.createElement('span'); h.className = 'tile-hidden'; h.textContent = 'Not on Home'; media.appendChild(h); }
 			var t = document.createElement('span'); t.className = 'tile-title'; t.textContent = p.title;
 			var c = document.createElement('span'); c.className = 'tile-cat';
 			var cats = p.categories && p.categories.length ? p.categories : (p.category ? [p.category] : []);
@@ -790,37 +787,8 @@ select.in { appearance: none; background-image: linear-gradient(45deg, transpare
 			} else c.textContent = 'No category';
 			b.appendChild(media); b.appendChild(t); b.appendChild(c);
 			b.addEventListener('click', function () { openEditor(p); });
-			li.appendChild(b);
-			li.appendChild(tileSwitch(p, li));
-			li.classList.toggle('tile-off', p.published === false);
-			ul.appendChild(li);
+			li.appendChild(b); ul.appendChild(li);
 		});
-	}
-	// On/off switch under each project: off = hidden from the website, nothing deleted
-	function tileSwitch(p, li) {
-		var foot = document.createElement('div'); foot.className = 'tile-foot';
-		var st = document.createElement('span'); st.className = 'tile-state';
-		var sw = document.createElement('button'); sw.type = 'button'; sw.className = 'sw'; sw.setAttribute('role', 'switch');
-		function paint() {
-			var on = p.published !== false;
-			st.textContent = on ? 'Live' : 'Hidden';
-			sw.setAttribute('aria-checked', on ? 'true' : 'false');
-			sw.setAttribute('aria-label', (on ? 'Hide ' : 'Show ') + p.title + (on ? ' from' : ' on') + ' your website');
-			li.classList.toggle('tile-off', !on);
-		}
-		paint();
-		sw.addEventListener('click', function () {
-			var was = p.published !== false;
-			p.published = !was; paint(); sw.disabled = true; renderDash();
-			api('visibility', { slug: p.slug, published: !was }).then(function () {
-				toast((was ? '“' + p.title + '” is now hidden' : '“' + p.title + '” is live again') + ' — website updates in about a minute');
-			}).catch(function (err) {
-				p.published = was; paint(); renderDash();
-				toast('Couldn’t change it: ' + err.message);
-			}).then(function () { sw.disabled = false; renderList(); });
-		});
-		foot.appendChild(st); foot.appendChild(sw);
-		return foot;
 	}
 	$('new-btn').addEventListener('click', function () { openEditor(null); });
 
@@ -895,10 +863,9 @@ select.in { appearance: none; background-image: linear-gradient(45deg, transpare
 		$('f-desc').value = p ? p.description : '';
 		$('f-date').value = (p && p.date) || new Date().toISOString().slice(0, 10);
 		$('f-home').checked = p ? p.show_on_home : true;
-		$('f-live').checked = p ? p.published !== false : true;
 		if (p) {
 			p.images.forEach(function (path) {
-				var it = { key: 'k' + (++keySeq), kind: 'existing', path: path, preview: path };
+				var it = { key: 'k' + (++keySeq), kind: 'existing', path: path, preview: path, off: (p.hidden || []).indexOf(path) !== -1 };
 				state.items.push(it);
 				if (p.cover && p.cover === path && !state.coverKey) state.coverKey = it.key;
 			});
@@ -906,7 +873,7 @@ select.in { appearance: none; background-image: linear-gradient(45deg, transpare
 		}
 		renderTrack();
 		$('vids').innerHTML = '';
-		(p && p.youtube.length ? p.youtube : ['']).forEach(addVid);
+		(p && p.youtube.length ? p.youtube : ['']).forEach(function (l) { addVid(l, !!(p && (p.hidden || []).indexOf(l) !== -1)); });
 		renderCover();
 		$('delete-zone').hidden = !p;
 		setStatus(p ? 'No changes yet' : 'Not published yet', 'Changes go live when you press Publish.', 0);
@@ -917,7 +884,9 @@ select.in { appearance: none; background-image: linear-gradient(45deg, transpare
 
 	function coverIndex() {
 		if (state.coverKey) for (var i = 0; i < state.items.length; i++) if (state.items[i].key === state.coverKey) return i;
-		return (state.coverFile || state.extraCover) ? -1 : 0;
+		if (state.coverFile || state.extraCover) return -1;
+		for (var j = 0; j < state.items.length; j++) if (!state.items[j].off) return j;
+		return 0;
 	}
 	function firstVideoThumb() {
 		var inp = $('vids').querySelector('input'), id = inp && ytId(inp.value);
@@ -977,8 +946,30 @@ select.in { appearance: none; background-image: linear-gradient(45deg, transpare
 				state.dirty = true; renderTrack();
 			});
 			rm.className = 'rm'; tools.appendChild(rm);
-			d.appendChild(tools); box.appendChild(d);
+			d.appendChild(tools);
+			d.appendChild(upSwitch(it.off, 'photo ' + (i + 1), function (on) {
+				it.off = !on; state.dirty = true;
+				if (it.off && state.coverKey === it.key) { state.coverKey = null; toast('That was the cover — the first visible photo is used now'); }
+				renderTrack(); setStatus('Not published yet', 'Press Publish to update your website.', 0);
+			}));
+			if (it.off) d.classList.add('is-off');
+			box.appendChild(d);
 		});
+	}
+	// Live / Hidden switch for one upload. Hidden = kept in the project, not shown on the website.
+	function upSwitch(off, what, onChange) {
+		var foot = document.createElement('div'); foot.className = 'clip-foot';
+		var st = document.createElement('span'); st.className = 'up-state'; st.textContent = off ? 'Hidden' : 'Live';
+		var sw = document.createElement('button'); sw.type = 'button'; sw.className = 'sw'; sw.setAttribute('role', 'switch');
+		sw.setAttribute('aria-checked', off ? 'false' : 'true');
+		sw.setAttribute('aria-label', 'Show ' + what + ' on your website');
+		sw.addEventListener('click', function () {
+			var on = sw.getAttribute('aria-checked') !== 'true';
+			sw.setAttribute('aria-checked', on ? 'true' : 'false'); st.textContent = on ? 'Live' : 'Hidden';
+			onChange(on);
+		});
+		foot.appendChild(st); foot.appendChild(sw);
+		return foot;
 	}
 	function tool(label, title, disabled, fn) {
 		var b = document.createElement('button');
@@ -1049,8 +1040,8 @@ select.in { appearance: none; background-image: linear-gradient(45deg, transpare
 	$('drop').addEventListener('drop', function (e) { addFiles(e.dataTransfer && e.dataTransfer.files); });
 
 	// ---------- videos ----------
-	function addVid(value) {
-		var row = document.createElement('div'); row.className = 'vid';
+	function addVid(value, off) {
+		var row = document.createElement('div'); row.className = 'vid' + (off ? ' is-off' : '');
 		var th = document.createElement('span'); th.className = 'vid-thumb';
 		var inp = document.createElement('input');
 		inp.className = 'in'; inp.type = 'url'; inp.inputMode = 'url'; inp.placeholder = 'https://youtu.be/…'; inp.value = value || '';
@@ -1065,7 +1056,12 @@ select.in { appearance: none; background-image: linear-gradient(45deg, transpare
 		var rm = document.createElement('button');
 		rm.type = 'button'; rm.className = 'rm'; rm.textContent = '✕'; rm.setAttribute('aria-label', 'Remove this video');
 		rm.addEventListener('click', function () { row.remove(); state.dirty = true; if (!$('vids').children.length) addVid(''); });
-		row.appendChild(th); row.appendChild(inp); row.appendChild(rm);
+		var swBox = upSwitch(!!off, 'this video', function (on) {
+			row.classList.toggle('is-off', !on); state.dirty = true;
+			setStatus('Not published yet', 'Press Publish to update your website.', 0);
+		});
+		swBox.className = 'vid-sw';
+		row.appendChild(th); row.appendChild(inp); row.appendChild(swBox); row.appendChild(rm);
 		$('vids').appendChild(row); refresh();
 		return inp;
 	}
@@ -1112,10 +1108,13 @@ select.in { appearance: none; background-image: linear-gradient(45deg, transpare
 		var also = state.also.filter(function (c) { return !same(c, main); });
 		if (!main && also.length) { main = also.shift(); }
 		var links = Array.prototype.map.call($('vids').querySelectorAll('input'), function (i) { return i.value.trim(); }).filter(Boolean);
+		var offLinks = Array.prototype.map.call($('vids').querySelectorAll('.vid.is-off input'), function (i) { return i.value.trim(); }).filter(Boolean);
 		var badLink = links.filter(function (l) { return !ytId(l); })[0];
 		if (!title) { fail('Add a project title.'); $('f-title').focus(); return; }
 		if (badLink) { fail('This isn’t a YouTube link: ' + badLink); return; }
 		if (!state.items.length && !links.length) { fail('Add at least one photo or a YouTube link.'); return; }
+		var anyLive = state.items.some(function (it) { return !it.off; }) || links.length > offLinks.length;
+		if (!anyLive && !confirm('Every photo and video is switched off, so this project won’t show on your website at all. Publish anyway?')) return;
 
 		var newOnes = state.items.filter(function (it) { return it.kind === 'new' && !it.path; });
 		if (state.coverFile && !state.coverFile.path) newOnes.unshift(state.coverFile);
@@ -1145,8 +1144,9 @@ select.in { appearance: none; background-image: linear-gradient(45deg, transpare
 				uploads: uploads,
 				project: {
 					title: title, category: main, categories: [main].concat(also).filter(Boolean),
-					date: $('f-date').value, show_on_home: $('f-home').checked, published: $('f-live').checked,
-					cover: cover || '', description: $('f-desc').value, youtube: links, images: images
+					date: $('f-date').value, show_on_home: $('f-home').checked,
+					cover: cover || '', description: $('f-desc').value, youtube: links, images: images,
+					hidden: state.items.filter(function (it) { return it.off; }).map(function (it) { return it.path; }).concat(offLinks)
 				}
 			});
 		}).then(function (r) {
@@ -1333,11 +1333,10 @@ select.in { appearance: none; background-image: linear-gradient(45deg, transpare
 		if (!$('v-app') || $('v-dash').hidden) return;
 		msg($('dash-msg'), dash.error);
 		var ps = state.projects, photos = 0, videos = 0, onHome = 0;
-		var off = 0;
-		ps.forEach(function (p) { photos += p.images.length; videos += p.youtube.length; if (p.published === false) off++; else if (p.show_on_home) onHome++; });
+		ps.forEach(function (p) { photos += p.images.length; videos += p.youtube.length; if (p.show_on_home) onHome++; });
 		var ready = dash.loaded;
 		$('s-projects').textContent = ready ? ps.length : '–';
-		$('s-projects-sub').textContent = ready ? (ps.length - off) + ' live' + (off ? ' · ' + off + ' hidden' : ' · ' + onHome + ' on Home') : '\u00a0';
+		$('s-projects-sub').textContent = ready ? onHome + ' on the Home page' : '\u00a0';
 		$('s-videos').textContent = ready ? videos : '–';
 		$('s-photos').textContent = ready ? photos : '–';
 		$('s-new').textContent = tst.subsLoaded ? tst.subs.length : '–';

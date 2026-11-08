@@ -57,10 +57,14 @@ const projects = (fs.existsSync(PROJECTS) ? fs.readdirSync(PROJECTS) : [])
     try { d = JSON.parse(fs.readFileSync(path.join(PROJECTS, f), 'utf8')); }
     catch (e) { problems.push(`${f}: not valid JSON (${e.message}) - skipped`); return null; }
     if (!d || d.draft === true) return null;
-    const images = asList(d.images);
+    // "hidden": uploads switched off in the admin - kept in the file, left off the website
+    const hiddenRaw = (Array.isArray(d.hidden) ? d.hidden : []).map((h) => String(h || '').trim()).filter(Boolean);
+    const hidden = new Set([...hiddenRaw, ...hiddenRaw.map(imgPath), ...hiddenRaw.map((h) => youtubeId(h)).filter(Boolean)]);
+    const images = asList(d.images).filter((src) => !hidden.has(src));
     // "youtube" can be one link or a list of links
     const links = (Array.isArray(d.youtube) ? d.youtube : [d.youtube])
-      .map((v) => String(v && typeof v === 'object' ? (v.link || v.url || '') : (v || '')));
+      .map((v) => String(v && typeof v === 'object' ? (v.link || v.url || '') : (v || '')))
+      .filter((l) => !hidden.has(l.trim()) && !hidden.has(youtubeId(l)));
     const vids = [];
     for (const l of links) {
       const id = youtubeId(l);
@@ -69,7 +73,7 @@ const projects = (fs.existsSync(PROJECTS) ? fs.readdirSync(PROJECTS) : [])
       vids.push({ id, short: /\/shorts\//i.test(l) });
     }
     const yts = vids.map((v) => v.id);
-    const cover = imgPath(d.cover) || images[0] || (yts[0] ? `https://i.ytimg.com/vi/${yts[0]}/hqdefault.jpg` : '');
+    const cover = (hidden.has(imgPath(d.cover)) ? '' : imgPath(d.cover)) || images[0] || (yts[0] ? `https://i.ytimg.com/vi/${yts[0]}/hqdefault.jpg` : '');
     return {
       slug: slugify(f),
       title: String(d.title || slugify(f).replace(/-/g, ' ')).trim(),
@@ -82,10 +86,10 @@ const projects = (fs.existsSync(PROJECTS) ? fs.readdirSync(PROJECTS) : [])
       })(),
       date: String(d.date || ''),
       home: d.show_on_home !== false,
-      // switched off in the admin: kept in the repo, but not built into the site
-      published: d.published !== false,
       description: String(d.description || ''),
       cover, images, yts, vids,
+      // every upload switched off: nothing to show, so the project is left off the site
+      everythingOff: !images.length && !vids.length && hiddenRaw.length > 0,
       // every single piece of work in this project, videos first
       pieces: [
         ...vids.map((v) => ({ kind: 'video', id: v.id, short: v.short })),
@@ -93,7 +97,7 @@ const projects = (fs.existsSync(PROJECTS) ? fs.readdirSync(PROJECTS) : [])
       ],
     };
   })
-  .filter((p) => p && p.published)
+  .filter((p) => p && !p.everythingOff)
   .sort((a, b) => (b.date || '').localeCompare(a.date || '') || a.title.localeCompare(b.title));
 
 // ---------- pieces of HTML ----------

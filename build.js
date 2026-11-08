@@ -234,9 +234,9 @@ try {
   }
 } catch (e) { problems.push(`testimonials.json: not valid JSON (${e.message}) - testimonials not shown`); }
 const initials = (n) => String(n).trim().split(/\s+/).slice(0, 2).map((w) => w.charAt(0).toUpperCase()).join('');
-const tmSection = (eyebrow, ask = true) => !testimonials.length ? '' : `<section class="tm" aria-labelledby="tm-h">
+const tmSection = (eyebrow) => !testimonials.length ? '' : `<section class="tm" aria-labelledby="tm-h">
 	<div class="wrap">
-		<div class="section-head"><div><span class="eyebrow">${eyebrow}</span><h2 id="tm-h">Working <em>with me</em></h2></div></div>
+		<div class="section-head"><div><span class="eyebrow">${eyebrow}</span><h2 id="tm-h">What People <em>Say</em></h2></div></div>
 		<div class="tm-grid">
 ${testimonials.map((t) => `			<figure class="tm-card reveal">
 				<blockquote>${paragraphs(t.quote)}</blockquote>
@@ -247,9 +247,9 @@ ${testimonials.map((t) => `			<figure class="tm-card reveal">
 				</figcaption>
 			</figure>`).join('\n')}
 		</div>
-${ask ? '\t\t<p class="tm-ask">Worked with me? <a href="/recommend/">Add your words &rarr;</a></p>\n' : ''}	</div>
+	</div>
 </section>`;
-fill('index.html', { '<!--TESTIMONIALS-->': tmSection('04 &mdash; Testimonials', false) });
+fill('index.html', { '<!--TESTIMONIALS-->': tmSection('04 &mdash; Testimonials') });
 fill('about-me/index.html', { '<!--TESTIMONIALS-->': tmSection('Testimonials') });
 if (testimonials.length) fill('index.html', { '04 &mdash; My software': '05 &mdash; My software' });
 

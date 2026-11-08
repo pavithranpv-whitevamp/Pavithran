@@ -20,7 +20,7 @@
 	--r-sm: 10px; --r: 16px; --r-lg: 26px; --pill: 999px;
 	--display: "Plus Jakarta Sans", system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
 	--body: "Inter", system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
-	--bar-h: 84px;
+	--bar-h: 84px; --side-w: 250px;
 }
 *, *::before, *::after { box-sizing: border-box; }
 html { -webkit-text-size-adjust: 100%; scroll-padding-bottom: calc(var(--bar-h) + 24px); }
@@ -75,19 +75,96 @@ a { color: var(--navy); }
 .login-foot { padding: 0 16px calc(18px + env(safe-area-inset-bottom)); }
 .login-foot .ruler { max-width: 980px; margin: 0 auto; --ph: 64%; }
 
-/* ================= APP HEADER ================= */
-.head { background: var(--navy-deep); color: var(--paper); padding-top: env(safe-area-inset-top); }
-.head-bar { display: flex; align-items: center; gap: 10px; min-height: 64px; }
+/* ================= APP SHELL: sidebar + top bar ================= */
 .head-mark { width: 38px; height: 38px; border-radius: 50%; background: var(--paper); display: grid; place-items: center; flex: none; }
 .head-mark img { width: 24px; height: 24px; object-fit: contain; }
-.head-name { flex: 1; font: 700 1rem/1.1 var(--display); min-width: 0; }
-.head-name small { display: block; font: 500 .78rem/1.3 var(--body); color: rgba(245,245,245,.65); }
-.head a.pill, .head button.pill { color: var(--paper); font: 600 .85rem/1 var(--display); text-decoration: none; background: rgba(245,245,245,.1); border: 0; padding: 11px 14px; border-radius: var(--pill); cursor: pointer; white-space: nowrap; }
-.head a.pill:hover, .head button.pill:hover { background: rgba(245,245,245,.2); }
-.head-hero { padding: 18px 0 0; display: flex; align-items: flex-end; justify-content: space-between; gap: 16px; flex-wrap: wrap; }
-.head-hero h1 { font: 800 clamp(1.9rem, 7vw, 2.8rem)/1 var(--display); letter-spacing: -.035em; margin: 0 0 8px; }
-.head-hero p { margin: 0; color: rgba(245,245,245,.72); font-size: .95rem; }
-.head .ruler { margin-top: 22px; }
+.side { position: fixed; z-index: 30; top: 0; bottom: 0; left: 0; width: var(--side-w); background: var(--navy-deep); color: var(--paper); display: flex; flex-direction: column; padding-top: env(safe-area-inset-top); transform: translateX(-100%); transition: transform .25s ease; overflow-y: auto; }
+.side.is-open { transform: none; box-shadow: 20px 0 40px -20px rgba(0,0,0,.5); }
+.side-brand { display: flex; align-items: center; gap: 10px; padding: 16px 16px; min-height: 68px; border-bottom: 1px solid rgba(245,245,245,.1); }
+.side-name { flex: 1; font: 800 1.05rem/1.1 var(--display); letter-spacing: -.01em; }
+.side-name small { display: block; font: 600 .66rem/1.4 var(--display); letter-spacing: .16em; text-transform: uppercase; color: var(--gold); }
+.side-close { width: 36px; height: 36px; border: 0; border-radius: 10px; background: rgba(245,245,245,.1); color: var(--paper); cursor: pointer; font-size: 1rem; }
+.side-nav { flex: 1; padding: 6px 0 16px; }
+.nav-label { margin: 18px 16px 6px; font: 700 .66rem/1 var(--display); letter-spacing: .14em; text-transform: uppercase; color: rgba(245,245,245,.45); }
+.nav-item { position: relative; display: flex; align-items: center; gap: 12px; width: 100%; min-height: 46px; padding: 0 16px; border: 0; border-bottom: 1px solid rgba(245,245,245,.06); background: none; color: rgba(245,245,245,.82); font: 500 .94rem/1.2 var(--body); text-align: left; text-decoration: none; cursor: pointer; }
+.nav-item svg { width: 18px; height: 18px; flex: none; opacity: .85; }
+.nav-item:hover { background: rgba(245,245,245,.06); color: var(--paper); }
+.nav-item.is-active { background: rgba(245,245,245,.1); color: var(--paper); font-weight: 600; }
+.nav-item.is-active::before { content: ""; position: absolute; left: 0; top: 8px; bottom: 8px; width: 3px; border-radius: 0 3px 3px 0; background: var(--gold); }
+.nav-item .badge-new { margin-left: auto; }
+.nav-item .ext { margin-left: auto; opacity: .5; font-size: .85rem; }
+.side-foot { padding: 14px 16px calc(16px + env(safe-area-inset-bottom)); border-top: 1px solid rgba(245,245,245,.1); }
+.side-user { display: flex; align-items: center; gap: 10px; margin-bottom: 12px; font: 700 .92rem/1.2 var(--display); }
+.side-user small { display: block; font: 500 .78rem/1.3 var(--body); color: rgba(245,245,245,.6); }
+.avatar { width: 34px; height: 34px; border-radius: 50%; background: var(--navy-soft); display: grid; place-items: center; font: 800 .9rem/1 var(--display); color: var(--gold); flex: none; }
+.side-logout { width: 100%; min-height: 40px; border: 1.5px solid rgba(245,245,245,.55); border-radius: 8px; background: none; color: var(--paper); font: 600 .88rem/1 var(--display); cursor: pointer; }
+.side-logout:hover { background: rgba(245,245,245,.1); }
+.scrim { position: fixed; inset: 0; z-index: 25; background: rgba(15,44,67,.45); }
+.top { position: sticky; top: 0; z-index: 15; display: flex; align-items: center; gap: 12px; min-height: 64px; padding: env(safe-area-inset-top) 16px 0; background: var(--white); border-bottom: 1px solid var(--line); }
+.top-title { flex: 1; margin: 0; font: 700 1.05rem/1.2 var(--display); color: var(--ink); min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.menu-btn, .bell { position: relative; width: 42px; height: 42px; border: 0; border-radius: 10px; background: none; color: var(--ink); display: grid; place-items: center; cursor: pointer; flex: none; }
+.menu-btn:hover, .bell:hover { background: var(--paper); }
+.menu-btn svg, .bell svg { width: 22px; height: 22px; }
+.bell-dot { position: absolute; top: 6px; right: 5px; min-width: 18px; height: 18px; padding: 0 5px; border-radius: 99px; background: var(--danger); color: #fff; font: 800 .68rem/18px var(--display); text-align: center; }
+@media (min-width: 992px) {
+	.side { transform: none; }
+	.side-close, .menu-btn, .scrim { display: none !important; }
+	.main { margin-left: var(--side-w); }
+	.bar { left: var(--side-w) !important; }
+	.top { padding-left: 24px; padding-right: 24px; }
+}
+
+/* ================= DASHBOARD ================= */
+.wide { max-width: 1180px; }
+.dash { padding-top: 24px; padding-bottom: 48px; }
+.page-h { display: flex; align-items: flex-end; justify-content: space-between; gap: 14px; flex-wrap: wrap; margin: 0 0 20px; }
+.page-h h2 { font: 800 clamp(1.6rem, 5vw, 2rem)/1.1 var(--display); letter-spacing: -.03em; color: var(--ink); margin: 0; }
+.page-h p { margin: 4px 0 0; color: var(--muted); font-size: .95rem; }
+.stats { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 12px; margin-bottom: 18px; }
+@media (min-width: 900px) { .stats { grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 18px; } }
+.stat { position: relative; overflow: hidden; display: block; width: 100%; text-align: left; border: 0; border-radius: 8px; padding: 16px 16px 18px; color: #fff; cursor: pointer; font: inherit; min-height: 96px; transition: transform .15s, box-shadow .15s; }
+.stat:hover { transform: translateY(-2px); box-shadow: 0 12px 22px -14px rgba(15,44,67,.6); }
+.stat b { display: block; font: 700 1rem/1.25 var(--display); }
+.stat strong { display: block; margin-top: 8px; font: 800 clamp(1.6rem, 5vw, 2rem)/1 var(--display); }
+.stat small { display: block; margin-top: 6px; font-size: .78rem; opacity: .85; }
+.stat svg { position: absolute; right: 12px; top: 14px; width: 30px; height: 30px; opacity: .3; }
+@media (max-width: 899px) { .stat svg { display: none; } }
+.stat--navy { background: #1565C0; }
+.stat--teal { background: #0FA5C9; }
+.stat--gold { background: var(--gold); color: var(--navy-deep); }
+.stat--red { background: #D93445; }
+.panels { display: grid; gap: 18px; }
+@media (min-width: 900px) { .panels { grid-template-columns: repeat(2, minmax(0, 1fr)); align-items: start; } }
+.panel { background: var(--white); border: 1px solid var(--line); border-radius: 8px; overflow: hidden; }
+.panel > h3 { margin: 0; padding: 12px 16px; font: 700 1rem/1.3 var(--display); color: var(--ink); background: #FAFBFC; border-bottom: 1px solid var(--line); display: flex; justify-content: space-between; align-items: center; gap: 10px; }
+.panel > h3 button { background: none; border: 0; padding: 0; color: var(--navy); font: 600 .84rem/1 var(--display); cursor: pointer; }
+.panel-body { padding: 16px; }
+.qa { display: flex; flex-wrap: wrap; gap: 8px; }
+.qa button, .qa a { display: inline-flex; align-items: center; gap: 6px; min-height: 38px; padding: 0 14px; border: 0; border-radius: 6px; font: 600 .88rem/1 var(--body); text-decoration: none; cursor: pointer; transition: filter .15s; }
+.qa button:hover, .qa a:hover { filter: brightness(1.08); }
+.qa .q1 { background: #1565C0; color: #fff; }
+.qa .q2 { background: #0FA5C9; color: #fff; }
+.qa .q3 { background: #198754; color: #fff; }
+.qa .q4 { background: var(--gold); color: var(--navy-deep); }
+.qa .q5 { background: #6C757D; color: #fff; }
+.act { list-style: none; margin: 0; padding: 0; }
+.act li + li { border-top: 1px solid var(--line); }
+.act button { display: flex; align-items: center; gap: 12px; width: 100%; padding: 10px 16px; border: 0; background: none; text-align: left; cursor: pointer; font: inherit; color: inherit; }
+.act button:hover { background: var(--paper); }
+.act-thumb { width: 48px; height: 48px; border-radius: 8px; flex: none; background: var(--navy) center / cover no-repeat; display: grid; place-items: center; color: var(--paper); font: 800 1.1rem/1 var(--display); }
+.act-thumb.is-new { background: var(--gold-soft); color: var(--navy); }
+.act-txt { flex: 1; min-width: 0; }
+.act-txt b { display: block; font: 600 .94rem/1.3 var(--display); color: var(--ink); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.act-txt small { display: block; font-size: .8rem; color: var(--muted); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.act-tag { flex: none; font: 700 .7rem/1 var(--display); padding: 5px 8px; border-radius: 6px; background: var(--mist); color: var(--navy); }
+.act-tag.is-new { background: var(--gold); }
+.act-empty { padding: 16px; color: var(--muted); margin: 0; }
+.cats { list-style: none; margin: 0; padding: 0; display: grid; gap: 12px; }
+.cats li { display: grid; grid-template-columns: 1fr auto; gap: 4px 10px; font-size: .9rem; }
+.cats b { font-weight: 600; color: var(--ink); }
+.cats span { color: var(--muted); }
+.cats i { grid-column: 1 / -1; height: 8px; border-radius: 99px; background: var(--mist); overflow: hidden; }
+.cats i::before { content: ""; display: block; height: 100%; width: var(--w); background: var(--navy); border-radius: 99px; }
 
 /* ================= LIST (media bin) ================= */
 .list { padding-top: 24px; padding-bottom: 48px; }
@@ -253,32 +330,79 @@ select.in { appearance: none; background-image: linear-gradient(45deg, transpare
 </section>
 
 <!-- ================= APP ================= -->
-<div id="v-app" hidden>
-	<header class="head">
-		<div class="wrap">
-			<div class="head-bar">
-				<span class="head-mark"><img src="/images/cropped-Site-Icon-New-1-192x192.png" alt=""></span>
-				<span class="head-name">Pavithran<small>Website admin</small></span>
-				<a class="pill" href="/admin/vault/">Vault</a>
-				<a class="pill" href="/" target="_blank" rel="noopener">View site</a>
-				<button class="pill" type="button" id="logout-btn">Log out</button>
-			</div>
-			<div class="head-hero" id="head-hero">
-				<div>
-					<h1>Your work</h1>
-					<p id="head-stats">Loading&hellip;</p>
-				</div>
-				<div style="display:flex;gap:10px;flex-wrap:wrap">
-					<button class="btn btn--line" type="button" id="tst-btn" style="border-color:rgba(245,245,245,.5);color:var(--paper)">Testimonials</button>
-					<button class="btn btn--gold" type="button" id="new-btn">Add new work</button>
-				</div>
-			</div>
-			<div class="ruler" id="ruler" aria-hidden="true"></div>
+<div id="v-app" class="app" hidden>
+	<aside class="side" id="side" aria-label="Admin menu">
+		<div class="side-brand">
+			<span class="head-mark"><img src="/images/cropped-Site-Icon-New-1-192x192.png" alt=""></span>
+			<span class="side-name">Pavithran<small>Creator studio</small></span>
+			<button class="side-close" type="button" id="side-close" aria-label="Close menu">&#10005;</button>
 		</div>
+		<nav class="side-nav">
+			<button class="nav-item" type="button" data-nav="v-dash"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="3" width="7" height="9" rx="1.5"/><rect x="14" y="3" width="7" height="5" rx="1.5"/><rect x="14" y="12" width="7" height="9" rx="1.5"/><rect x="3" y="16" width="7" height="5" rx="1.5"/></svg>Dashboard</button>
+			<p class="nav-label">Portfolio</p>
+			<button class="nav-item" type="button" data-nav="v-list"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 7a2 2 0 0 1 2-2h4l2 2h8a2 2 0 0 1 2 2v8a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/></svg>Projects</button>
+			<button class="nav-item" type="button" id="nav-new"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="3" width="18" height="18" rx="3"/><path d="M12 8v8M8 12h8"/></svg>Add new work</button>
+			<button class="nav-item" type="button" id="tst-btn" data-nav="v-tst"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/><path d="M8 9h8M8 13h5"/></svg>Testimonials</button>
+			<p class="nav-label">Tools</p>
+			<a class="nav-item" href="/admin/vault/"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="4" y="10" width="16" height="11" rx="2"/><path d="M8 10V7a4 4 0 0 1 8 0v3"/></svg>Private vault</a>
+			<a class="nav-item" href="/" target="_blank" rel="noopener"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="M3 12h18M12 3a14 14 0 0 1 0 18M12 3a14 14 0 0 0 0 18"/></svg>View website<span class="ext">&#8599;</span></a>
+		</nav>
+		<div class="side-foot">
+			<div class="side-user"><span class="avatar">P</span><span>Pavithran<small>Super admin</small></span></div>
+			<button class="side-logout" type="button" id="logout-btn">Log out</button>
+		</div>
+	</aside>
+	<div class="scrim" id="scrim" hidden></div>
+
+	<div class="main">
+	<header class="top">
+		<button class="menu-btn" type="button" id="menu-btn" aria-label="Open menu" aria-controls="side" aria-expanded="false"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 6h16M4 12h16M4 18h16"/></svg></button>
+		<p class="top-title" id="top-title">Dashboard</p>
+		<button class="bell" type="button" id="bell" aria-label="New testimonials"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M6 8a6 6 0 0 1 12 0c0 7 3 9 3 9H3s3-2 3-9"/><path d="M10.3 21a1.94 1.94 0 0 0 3.4 0"/></svg><span class="bell-dot" id="bell-dot" hidden></span></button>
 	</header>
 
+	<!-- Dashboard -->
+	<main class="wrap wide dash" id="v-dash" hidden>
+		<div class="page-h">
+			<div><h2>Dashboard</h2><p id="dash-hello">Here&rsquo;s what&rsquo;s on your website.</p></div>
+		</div>
+		<div class="stats">
+			<button class="stat stat--navy" type="button" data-go="v-list"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 7a2 2 0 0 1 2-2h4l2 2h8a2 2 0 0 1 2 2v8a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/></svg><b>Total Projects</b><strong id="s-projects">&ndash;</strong><small id="s-projects-sub">&nbsp;</small></button>
+			<button class="stat stat--teal" type="button" data-go="v-list"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="2" y="5" width="15" height="14" rx="2"/><path d="m17 10 5-3v10l-5-3"/></svg><b>Videos</b><strong id="s-videos">&ndash;</strong><small>YouTube links</small></button>
+			<button class="stat stat--gold" type="button" data-go="v-list"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="9" cy="9" r="2"/><path d="m21 15-5-5L5 21"/></svg><b>Designs &amp; Photos</b><strong id="s-photos">&ndash;</strong><small>Images uploaded</small></button>
+			<button class="stat stat--red" type="button" data-go="v-tst"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/><path d="M8 9h8M8 13h5"/></svg><b>New Testimonials</b><strong id="s-new">&ndash;</strong><small id="s-live">Waiting for you to review</small></button>
+		</div>
+		<p class="msg msg--error" id="dash-msg" hidden></p>
+		<div class="panels">
+			<div style="display:grid;gap:18px">
+				<section class="panel">
+					<h3>Quick Actions</h3>
+					<div class="panel-body qa">
+						<button class="q1" type="button" id="qa-new">+ Add new work</button>
+						<button class="q2" type="button" data-go="v-list">All projects</button>
+						<button class="q3" type="button" data-go="v-tst">Testimonials</button>
+						<button class="q4" type="button" id="qa-ask">Ask for a testimonial</button>
+						<a class="q5" href="/admin/vault/">Private vault</a>
+					</div>
+				</section>
+				<section class="panel">
+					<h3>Projects by category</h3>
+					<div class="panel-body"><ul class="cats" id="dash-cats"></ul></div>
+				</section>
+			</div>
+			<section class="panel">
+				<h3>Recent Activity <button type="button" data-go="v-list">View all</button></h3>
+				<ul class="act" id="dash-act"><li><p class="act-empty">Loading&hellip;</p></li></ul>
+			</section>
+		</div>
+	</main>
+
 	<!-- List -->
-	<main class="wrap list" id="v-list">
+	<main class="wrap wide list" id="v-list" hidden>
+		<div class="page-h">
+			<div><h2>Projects</h2><p id="head-stats">Loading&hellip;</p></div>
+			<button class="btn btn--gold" type="button" id="new-btn">+ Add new work</button>
+		</div>
 		<p class="msg msg--error" id="list-msg" hidden></p>
 		<div class="loading" id="list-loading">Loading your projects&hellip;</div>
 		<ul class="bin" id="bin"></ul>
@@ -379,7 +503,7 @@ select.in { appearance: none; background-image: linear-gradient(45deg, transpare
 	<!-- Done -->
 	<main class="wrap narrow tst" id="v-tst" hidden>
 		<div class="edit-top">
-			<button class="link-btn" type="button" id="tst-back">&larr; All projects</button>
+			<button class="link-btn" type="button" id="tst-back">&larr; Dashboard</button>
 			<h2>Testimonials</h2>
 			<p>Words from people you’ve worked with. Published ones appear on your Home and About pages. Only add real testimonials, with the person’s permission.</p>
 		</div>
@@ -447,6 +571,7 @@ select.in { appearance: none; background-image: linear-gradient(45deg, transpare
 			<button class="btn btn--gold" type="button" id="publish-btn">Publish</button>
 		</div>
 	</div>
+	</div>
 </div>
 
 <div class="toast" id="toast" role="status" aria-live="polite"></div>
@@ -488,23 +613,50 @@ select.in { appearance: none; background-image: linear-gradient(45deg, transpare
 		var t = $('toast'); t.textContent = text; t.classList.add('is-on');
 		clearTimeout(toastTimer); toastTimer = setTimeout(function () { t.classList.remove('is-on'); }, 2600);
 	}
-	function setRuler(pct) { $('ruler').style.setProperty('--ph', pct + '%'); }
 
 	// ---------- views ----------
+	var TITLES = { 'v-dash': 'Dashboard', 'v-list': 'Projects', 'v-edit': 'Projects', 'v-done': 'Projects', 'v-tst': 'Testimonials' };
 	function show(view) {
-		['v-list', 'v-edit', 'v-done', 'v-tst'].forEach(function (v) { $(v).hidden = v !== view; });
+		['v-dash', 'v-list', 'v-edit', 'v-done', 'v-tst'].forEach(function (v) { $(v).hidden = v !== view; });
 		$('edit-bar').hidden = view !== 'v-edit';
 		$('tst-bar').hidden = view !== 'v-tst';
-		$('head-hero').hidden = view !== 'v-list';
-		setRuler(view === 'v-list' ? 22 : view === 'v-edit' ? 55 : 92);
+		$('top-title').textContent = view === 'v-edit' ? (state.editing ? 'Edit project' : 'Add new work') : TITLES[view];
+		var navView = view === 'v-edit' && !state.editing ? 'new' : (view === 'v-edit' || view === 'v-done' ? 'v-list' : view);
+		Array.prototype.forEach.call(document.querySelectorAll('.nav-item'), function (n) {
+			var on = (n.id === 'nav-new' && navView === 'new') || n.getAttribute('data-nav') === navView;
+			n.classList.toggle('is-active', on);
+			if (on) n.setAttribute('aria-current', 'page'); else n.removeAttribute('aria-current');
+		});
+		if (view === 'v-dash') renderDash();
+		closeSide();
 		window.scrollTo(0, 0);
+	}
+	// Sidebar (slides in on phones, always visible on wide screens)
+	function openSide() { $('side').classList.add('is-open'); $('scrim').hidden = false; $('menu-btn').setAttribute('aria-expanded', 'true'); }
+	function closeSide() { $('side').classList.remove('is-open'); $('scrim').hidden = true; $('menu-btn').setAttribute('aria-expanded', 'false'); }
+	$('menu-btn').addEventListener('click', openSide);
+	$('side-close').addEventListener('click', closeSide);
+	$('scrim').addEventListener('click', closeSide);
+	document.addEventListener('keydown', function (e) { if (e.key === 'Escape') closeSide(); });
+	// Leaving a screen with unpublished changes asks first
+	function canLeave() {
+		if (state.busy || tst.busy) { toast('Wait until publishing finishes.'); return false; }
+		if (!$('v-edit').hidden && state.dirty && !confirm('Leave without publishing? Your changes will be lost.')) return false;
+		if (!$('v-tst').hidden && tst.dirty && !confirm('Leave without publishing? Your testimonial changes will be lost.')) return false;
+		if (!$('v-edit').hidden) state.dirty = false;
+		if (!$('v-tst').hidden) tst.dirty = false;
+		return true;
+	}
+	function go(view) {
+		if (view === 'v-tst') { if (!$('v-tst').hidden) { closeSide(); return; } if (canLeave()) openTestimonials(); return; }
+		if (canLeave()) show(view);
 	}
 	function showLogin(text) {
 		$('v-app').hidden = true; $('v-login').hidden = false;
 		msg($('login-error'), text || '');
 		setTimeout(function () { ($('l-user').value ? $('l-pass') : $('l-user')).focus(); }, 50);
 	}
-	function showApp() { $('v-login').hidden = true; $('v-app').hidden = false; show('v-list'); loadProjects(); setTimeout(function () { if (typeof loadSubs === 'function') loadSubs(); }, 0); }
+	function showApp() { $('v-login').hidden = true; $('v-app').hidden = false; dash.loaded = false; show('v-dash'); loadProjects(); setTimeout(function () { loadSubs(); loadLiveCount(); }, 0); }
 
 	// ---------- login ----------
 	$('pass-toggle').addEventListener('click', function () {
@@ -531,8 +683,9 @@ select.in { appearance: none; background-image: linear-gradient(45deg, transpare
 		$('list-loading').hidden = false; $('bin').innerHTML = ''; msg($('list-msg'));
 		return api('projects').then(function (d) {
 			state.projects = d.projects || [];
-			renderList();
-		}).catch(function (err) { msg($('list-msg'), err.message); $('head-stats').textContent = ''; })
+			dash.loaded = true; dash.error = '';
+			renderList(); renderDash();
+		}).catch(function (err) { msg($('list-msg'), err.message); $('head-stats').textContent = ''; dash.error = err.message; renderDash(); })
 			.then(function () { $('list-loading').hidden = true; });
 	}
 	function thumbFor(p) {
@@ -1015,9 +1168,12 @@ select.in { appearance: none; background-image: linear-gradient(45deg, transpare
 		var b = $('tst-btn'); var x = b.querySelector('.badge-new');
 		if (n) { if (!x) { x = document.createElement('span'); x.className = 'badge-new'; b.appendChild(x); } x.textContent = n; }
 		else if (x) x.remove();
+		$('bell-dot').hidden = !n; $('bell-dot').textContent = n || '';
+		$('bell').setAttribute('aria-label', n ? plural(n, 'new testimonial', 'new testimonials') : 'No new testimonials');
+		renderDash();
 	}
 	function loadSubs() {
-		return api('submissions').then(function (d) { tst.subs = d.submissions || []; newBadge(tst.subs.length); renderSubs(); }).catch(function () {});
+		return api('submissions').then(function (d) { tst.subs = d.submissions || []; tst.subsLoaded = true; newBadge(tst.subs.length); renderSubs(); }).catch(function () { tst.subsLoaded = true; renderDash(); });
 	}
 	function renderSubs() {
 		var list = tst.subs.filter(function (x) { return tst.added.indexOf(x.id) === -1; });
@@ -1059,14 +1215,14 @@ select.in { appearance: none; background-image: linear-gradient(45deg, transpare
 		tst.added = []; renderSubs(); loadSubs();
 		api('testimonials').then(function (d) {
 			tst.list = d.testimonials || []; tst.dirty = false; tstRender();
+			dash.live = tst.list.filter(function (t) { return t.show; }).length;
 			tstStatus('No changes yet', 'Changes go live when you press Publish.', 0);
 		}).catch(function (err) { msg($('tst-msg'), err.message); tstStatus('Couldn’t load', '', 0); });
 	}
-	$('tst-btn').addEventListener('click', openTestimonials);
 	$('tst-back').addEventListener('click', function () {
 		if (tst.busy) return;
 		if (tst.dirty && !confirm('Leave without publishing? Your testimonial changes will be lost.')) return;
-		tst.dirty = false; show('v-list');
+		tst.dirty = false; show('v-dash');
 	});
 	$('tst-publish').addEventListener('click', function () {
 		if (tst.busy) return;
@@ -1074,13 +1230,108 @@ select.in { appearance: none; background-image: linear-gradient(45deg, transpare
 		tst.busy = true; $('tst-publish').disabled = true; $('tst-publish').textContent = 'Publishing…';
 		tstStatus('Publishing', 'Saving to your website…', 50);
 		api('testimonials', { testimonials: tst.list }).then(function (r) {
-			tst.dirty = false; tstStatus('Published', r.shown + ' shown on your website. It updates in about a minute.', 100); toast('Published');
+			tst.dirty = false; dash.live = r.shown; tstStatus('Published', r.shown + ' shown on your website. It updates in about a minute.', 100); toast('Published');
 			if (tst.added.length) {
 				var done = tst.added.slice();
 				api('submissions-dismiss', { ids: done }).then(function () { tst.subs = tst.subs.filter(function (y) { return done.indexOf(y.id) === -1; }); tst.added = []; newBadge(tst.subs.length); renderSubs(); }).catch(function () {});
 			}
 		}).catch(function (err) { msg($('tst-msg'), err.message); tstStatus('Not published', 'Fix the problem above, then press Publish again.', 0); window.scrollTo(0, 0); })
 			.then(function () { tst.busy = false; $('tst-publish').disabled = false; $('tst-publish').textContent = 'Publish'; });
+	});
+
+	// ---------- dashboard ----------
+	var dash = { loaded: false, error: '', live: null };
+	function loadLiveCount() {
+		api('testimonials').then(function (d) { dash.live = (d.testimonials || []).filter(function (t) { return t.show; }).length; renderDash(); }).catch(function () {});
+	}
+	function fmtDate(d) {
+		if (!d) return '';
+		var t = new Date(d + 'T00:00:00');
+		return isNaN(t) ? d : t.toLocaleDateString(undefined, { day: 'numeric', month: 'short', year: 'numeric' });
+	}
+	function renderDash() {
+		if (!$('v-app') || $('v-dash').hidden) return;
+		msg($('dash-msg'), dash.error);
+		var ps = state.projects, photos = 0, videos = 0, onHome = 0;
+		ps.forEach(function (p) { photos += p.images.length; videos += p.youtube.length; if (p.show_on_home) onHome++; });
+		var ready = dash.loaded;
+		$('s-projects').textContent = ready ? ps.length : '–';
+		$('s-projects-sub').textContent = ready ? onHome + ' on the Home page' : '\u00a0';
+		$('s-videos').textContent = ready ? videos : '–';
+		$('s-photos').textContent = ready ? photos : '–';
+		$('s-new').textContent = tst.subsLoaded ? tst.subs.length : '–';
+		$('s-live').textContent = dash.live === null ? 'Waiting for you to review' : plural(dash.live, 'testimonial', 'testimonials') + ' live on the site';
+		var h = new Date().getHours();
+		$('dash-hello').textContent = (h < 12 ? 'Good morning' : h < 17 ? 'Good afternoon' : 'Good evening') + ', Pavithran. Here’s what’s on your website.';
+
+		// Categories
+		var counts = {}, order = [];
+		ps.forEach(function (p) {
+			var cats = p.categories && p.categories.length ? p.categories : (p.category ? [p.category] : ['No category']);
+			cats.forEach(function (c) { if (!counts[c]) { counts[c] = 0; order.push(c); } counts[c]++; });
+		});
+		order.sort(function (a, b) { return counts[b] - counts[a]; });
+		var cl = $('dash-cats'); cl.innerHTML = '';
+		if (!ready) cl.innerHTML = '<li><span>Loading…</span></li>';
+		else if (!order.length) cl.innerHTML = '<li><span>No projects yet.</span></li>';
+		var max = order.length ? counts[order[0]] : 1;
+		order.forEach(function (c) {
+			var li = document.createElement('li');
+			var b = document.createElement('b'); b.textContent = c;
+			var n = document.createElement('span'); n.textContent = plural(counts[c], 'project', 'projects');
+			var bar = document.createElement('i'); bar.style.setProperty('--w', Math.round(counts[c] / max * 100) + '%');
+			li.appendChild(b); li.appendChild(n); li.appendChild(bar); cl.appendChild(li);
+		});
+
+		// Recent activity: new testimonials first, then newest projects
+		var ul = $('dash-act'); ul.innerHTML = '';
+		var rows = 0;
+		(tst.subs || []).slice(0, 3).forEach(function (x) {
+			rows++;
+			ul.appendChild(actRow('“', true, 'New testimonial from ' + x.name, x.at ? 'Sent ' + new Date(x.at).toLocaleDateString(undefined, { day: 'numeric', month: 'short' }) : 'Waiting for review', 'Review', function () { go('v-tst'); }));
+		});
+		ps.slice().sort(function (a, b) { return String(b.date || '').localeCompare(String(a.date || '')); }).slice(0, 6 - rows).forEach(function (p) {
+			rows++;
+			var bits = [];
+			if (p.youtube.length) bits.push(plural(p.youtube.length, 'video', 'videos'));
+			if (p.images.length) bits.push(plural(p.images.length, 'photo', 'photos'));
+			var cat = (p.categories && p.categories[0]) || p.category || '';
+			ul.appendChild(actRow(thumbFor(p), false, p.title, [fmtDate(p.date), bits.join(' · ')].filter(Boolean).join(' — '), cat || 'Project', function () { if (canLeave()) openEditor(p); }));
+		});
+		if (!rows) ul.innerHTML = '<li><p class="act-empty">' + (ready ? 'No recent activity yet.' : 'Loading…') + '</p></li>';
+	}
+	function actRow(thumb, isNew, title, sub, tag, fn) {
+		var li = document.createElement('li');
+		var b = document.createElement('button'); b.type = 'button';
+		var th = document.createElement('span'); th.className = 'act-thumb' + (isNew ? ' is-new' : '');
+		if (isNew) th.textContent = thumb;
+		else if (thumb) th.style.backgroundImage = 'url("' + thumb.replace(/"/g, '%22') + '")';
+		else th.textContent = (title || '?').charAt(0).toUpperCase();
+		var tx = document.createElement('span'); tx.className = 'act-txt';
+		var t = document.createElement('b'); t.textContent = title;
+		var s2 = document.createElement('small'); s2.textContent = sub;
+		tx.appendChild(t); tx.appendChild(s2);
+		var tg = document.createElement('span'); tg.className = 'act-tag' + (isNew ? ' is-new' : ''); tg.textContent = tag;
+		b.appendChild(th); b.appendChild(tx); b.appendChild(tg);
+		b.addEventListener('click', fn);
+		li.appendChild(b); return li;
+	}
+
+	// ---------- navigation ----------
+	Array.prototype.forEach.call(document.querySelectorAll('[data-nav]'), function (n) {
+		n.addEventListener('click', function () { go(n.getAttribute('data-nav')); });
+	});
+	Array.prototype.forEach.call(document.querySelectorAll('[data-go]'), function (n) {
+		n.addEventListener('click', function () { go(n.getAttribute('data-go')); });
+	});
+	$('nav-new').addEventListener('click', function () { if (canLeave()) openEditor(null); });
+	$('qa-new').addEventListener('click', function () { openEditor(null); });
+	$('bell').addEventListener('click', function () { go('v-tst'); });
+	$('qa-ask').addEventListener('click', function () {
+		var url = location.origin + '/recommend/';
+		var done = function () { toast('Testimonial link copied — send it to a colleague'); };
+		if (navigator.clipboard) navigator.clipboard.writeText(url).then(done, function () { prompt('Copy this link:', url); });
+		else prompt('Copy this link:', url);
 	});
 
 	// ---------- start ----------

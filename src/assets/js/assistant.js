@@ -88,7 +88,7 @@
 					'<li><b>Proficient:</b> Adobe Photoshop, Illustrator, Premiere Pro, After Effects</li>' +
 					'<li><b>Intermediate:</b> WordPress with Elementor (building &amp; managing websites, no coding)</li>' +
 					'<li><b>Learning:</b> DaVinci Resolve, Blender</li>' +
-					'<li><b>AI tools:</b> Google Flow for AI video concepts; ChatGPT, Gemini and Claude for ideas, scripts and captions</li></ul>' +
+					'<li><b>AI tools:</b> Google Flow for AI images and video; ChatGPT, Gemini and Claude for ideas, scripts and captions</li></ul>' +
 					'<p class="muted">He also has a background in computer hardware &amp; networking.</p>';
 			},
 			chips: ['services', 'work', 'exp']

@@ -82,12 +82,13 @@
 		},
 		{
 			id: 'skills',
-			keys: ['skill', 'skills', 'tool', 'tools', 'software', 'photoshop', 'illustrator', 'premiere', 'after effects', 'aftereffects', 'davinci', 'resolve', 'blender', 'wordpress', 'elementor', 'adobe', 'proficient', 'expert', 'good at', 'know', '3d'],
+			keys: ['skill', 'skills', 'tool', 'tools', 'software', 'photoshop', 'illustrator', 'premiere', 'after effects', 'aftereffects', 'davinci', 'resolve', 'blender', 'ai', 'chatgpt', 'gemini', 'claude', 'flow', 'wordpress', 'elementor', 'adobe', 'proficient', 'expert', 'good at', 'know', '3d'],
 			html: function () {
 				return '<p>Tools he works with:</p><ul>' +
 					'<li><b>Proficient:</b> Adobe Photoshop, Illustrator, Premiere Pro, After Effects</li>' +
 					'<li><b>Intermediate:</b> WordPress with Elementor (building &amp; managing websites, no coding)</li>' +
-					'<li><b>Learning:</b> DaVinci Resolve, Blender</li></ul>' +
+					'<li><b>Learning:</b> DaVinci Resolve, Blender</li>' +
+					'<li><b>AI tools:</b> Google Flow for AI video concepts; ChatGPT, Gemini and Claude for ideas, scripts and captions</li></ul>' +
 					'<p class="muted">He also has a background in computer hardware &amp; networking.</p>';
 			},
 			chips: ['services', 'work', 'exp']

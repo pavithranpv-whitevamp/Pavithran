@@ -177,6 +177,11 @@ p { margin: 0 0 1.1em; }
 .skill-level { justify-self: start; align-self: start; font: 600 .64rem/1 var(--font-display); letter-spacing: .12em; text-transform: uppercase; padding: .35rem .7rem; margin-top: .3rem; background: var(--mist); color: var(--navy); border-radius: var(--r-pill); }
 .skill--pro .skill-level { background: var(--gold); }
 .skill--new .skill-level { background: transparent; border: 1px dashed var(--line-strong); }
+.ai-head { margin: 2.5rem 0 1rem; }
+.ai-head h3 { font: 700 1.2rem/1.2 var(--font-display); letter-spacing: -.01em; color: var(--navy); margin: 0 0 .35rem; }
+.ai-head p { margin: 0; max-width: 60ch; color: var(--muted, #5b6977); font-size: .95rem; }
+.skill--ai .skill-ic { background: var(--navy); color: var(--gold); }
+.skill--ai .skill-level { background: transparent; border: 1px solid var(--line-strong); }
 
 .about { display: grid; grid-template-columns: minmax(0, .85fr) minmax(0, 1.15fr); gap: clamp(2rem, 5vw, 4.5rem); align-items: stretch; }
 .portrait { position: relative; aspect-ratio: 4 / 5; background: var(--navy); border: 1px solid var(--navy); border-radius: var(--r-lg); overflow: hidden; max-height: 34rem; width: 100%; }

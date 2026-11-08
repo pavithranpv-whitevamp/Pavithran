@@ -1,6 +1,15 @@
 {
   "testimonials": [
     {
+      "name": "Austin Raj",
+      "role": "Video Editor",
+      "company": "Impressive Innovations and Solutions Pvt. Ltd.",
+      "relation": "Colleague",
+      "quote": "It was a Nice experience working with Pavithran, very talented guy with absolute patience and discipline, he knew how to do the creatives for commercial advertising by creating eye catching contents with his software skill and knowledge, he knew how to do this stuff, a very steady guy who deals the clients with absolute patience..above all he is a good and kind person with good software knowledge...it's a pleasure working with him",
+      "link": "",
+      "show": true
+    },
+    {
       "name": "Fayaz Ahamed",
       "role": "Designer",
       "company": "Impressive Innovations and Solutions Pvt. Ltd.",

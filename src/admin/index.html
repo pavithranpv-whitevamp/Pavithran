@@ -197,6 +197,18 @@ a { color: var(--navy); }
 .tile-letter { position: absolute; inset: 0; display: grid; place-items: center; font: 800 3.4rem/1 var(--display); color: var(--paper); }
 .tile-counts { position: absolute; z-index: 1; left: 8px; bottom: 8px; display: flex; gap: 6px; }
 .tile-counts span { background: rgba(15,44,67,.82); color: var(--paper); font: 600 .74rem/1 var(--display); padding: 6px 8px; border-radius: 8px; }
+.tile-off .tile-media { opacity: .4; filter: grayscale(.7); }
+.tile-off .tile-title { color: var(--muted); }
+.tile-foot { display: flex; align-items: center; justify-content: space-between; gap: 8px; margin: 8px 2px 0; padding-top: 8px; border-top: 1px solid var(--line); }
+.tile-state { font: 700 .74rem/1 var(--display); letter-spacing: .04em; text-transform: uppercase; color: #198754; display: inline-flex; align-items: center; gap: 6px; }
+.tile-state::before { content: ""; width: 8px; height: 8px; border-radius: 50%; background: currentColor; }
+.tile-off .tile-state { color: var(--muted); }
+.sw { position: relative; width: 46px; height: 26px; flex: none; border: 0; border-radius: 99px; background: var(--mist-edge); cursor: pointer; transition: background .2s; padding: 0; }
+.sw::after { content: ""; position: absolute; top: 3px; left: 3px; width: 20px; height: 20px; border-radius: 50%; background: #fff; box-shadow: 0 1px 3px rgba(0,0,0,.25); transition: transform .2s; }
+.sw[aria-checked="true"] { background: #198754; }
+.sw[aria-checked="true"]::after { transform: translateX(20px); }
+.sw:disabled { opacity: .55; cursor: wait; }
+.sw:focus-visible { outline: 3px solid var(--gold); outline-offset: 2px; }
 .tile-hidden { position: absolute; right: 8px; top: 8px; background: var(--paper); color: var(--navy); font: 600 .72rem/1 var(--display); padding: 6px 8px; border-radius: 8px; }
 .tile-title { display: block; font: 700 1rem/1.25 var(--display); color: var(--navy); margin: 10px 2px 2px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 .tile-cat { display: block; font-size: .84rem; color: var(--muted); margin: 0 2px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
@@ -522,6 +534,10 @@ select.in { appearance: none; background-image: linear-gradient(45deg, transpare
 					<span class="hint">Newest work is shown first.</span>
 				</div>
 				<div class="toggle">
+					<label for="f-live"><span class="lbl" style="margin:0">Show on my website</span><span class="hint" style="margin-top:2px">Switch off to hide this project everywhere on the site. Nothing is deleted &mdash; switch it back on any time.</span></label>
+					<input type="checkbox" id="f-live" checked>
+				</div>
+				<div class="toggle">
 					<label for="f-home"><span class="lbl" style="margin:0">Show on the Home page</span><span class="hint" style="margin-top:2px">Its videos and designs can appear in the work wall on the Home page.</span></label>
 					<input type="checkbox" id="f-home" checked>
 				</div>
@@ -738,10 +754,10 @@ select.in { appearance: none; background-image: linear-gradient(45deg, transpare
 		return cats;
 	}
 	function renderList() {
-		var ps = state.projects, photos = 0, videos = 0;
-		ps.forEach(function (p) { photos += p.images.length; videos += p.youtube.length; });
+		var ps = state.projects, photos = 0, videos = 0, off = 0;
+		ps.forEach(function (p) { photos += p.images.length; videos += p.youtube.length; if (p.published === false) off++; });
 		$('head-stats').textContent = ps.length
-			? plural(ps.length, 'project', 'projects') + ', ' + plural(photos, 'photo', 'photos') + ' and ' + plural(videos, 'video', 'videos') + ' on your website.'
+			? plural(ps.length, 'project', 'projects') + ', ' + plural(photos, 'photo', 'photos') + ' and ' + plural(videos, 'video', 'videos') + '.' + (off ? ' ' + off + ' switched off (hidden from your website).' : ' Use the switch on a project to hide or show it.')
 			: 'Nothing on your website yet.';
 		var ul = $('bin'); ul.innerHTML = '';
 		if (!ps.length) {
@@ -764,7 +780,7 @@ select.in { appearance: none; background-image: linear-gradient(45deg, transpare
 			if (p.images.length) { var a = document.createElement('span'); a.textContent = plural(p.images.length, 'photo', 'photos'); counts.appendChild(a); }
 			if (p.youtube.length) { var v = document.createElement('span'); v.textContent = plural(p.youtube.length, 'video', 'videos'); counts.appendChild(v); }
 			media.appendChild(counts);
-			if (!p.show_on_home) { var h = document.createElement('span'); h.className = 'tile-hidden'; h.textContent = 'Not on Home'; media.appendChild(h); }
+			if (p.published !== false && !p.show_on_home) { var h = document.createElement('span'); h.className = 'tile-hidden'; h.textContent = 'Not on Home'; media.appendChild(h); }
 			var t = document.createElement('span'); t.className = 'tile-title'; t.textContent = p.title;
 			var c = document.createElement('span'); c.className = 'tile-cat';
 			var cats = p.categories && p.categories.length ? p.categories : (p.category ? [p.category] : []);
@@ -774,8 +790,37 @@ select.in { appearance: none; background-image: linear-gradient(45deg, transpare
 			} else c.textContent = 'No category';
 			b.appendChild(media); b.appendChild(t); b.appendChild(c);
 			b.addEventListener('click', function () { openEditor(p); });
-			li.appendChild(b); ul.appendChild(li);
+			li.appendChild(b);
+			li.appendChild(tileSwitch(p, li));
+			li.classList.toggle('tile-off', p.published === false);
+			ul.appendChild(li);
 		});
+	}
+	// On/off switch under each project: off = hidden from the website, nothing deleted
+	function tileSwitch(p, li) {
+		var foot = document.createElement('div'); foot.className = 'tile-foot';
+		var st = document.createElement('span'); st.className = 'tile-state';
+		var sw = document.createElement('button'); sw.type = 'button'; sw.className = 'sw'; sw.setAttribute('role', 'switch');
+		function paint() {
+			var on = p.published !== false;
+			st.textContent = on ? 'Live' : 'Hidden';
+			sw.setAttribute('aria-checked', on ? 'true' : 'false');
+			sw.setAttribute('aria-label', (on ? 'Hide ' : 'Show ') + p.title + (on ? ' from' : ' on') + ' your website');
+			li.classList.toggle('tile-off', !on);
+		}
+		paint();
+		sw.addEventListener('click', function () {
+			var was = p.published !== false;
+			p.published = !was; paint(); sw.disabled = true; renderDash();
+			api('visibility', { slug: p.slug, published: !was }).then(function () {
+				toast((was ? '“' + p.title + '” is now hidden' : '“' + p.title + '” is live again') + ' — website updates in about a minute');
+			}).catch(function (err) {
+				p.published = was; paint(); renderDash();
+				toast('Couldn’t change it: ' + err.message);
+			}).then(function () { sw.disabled = false; renderList(); });
+		});
+		foot.appendChild(st); foot.appendChild(sw);
+		return foot;
 	}
 	$('new-btn').addEventListener('click', function () { openEditor(null); });
 
@@ -850,6 +895,7 @@ select.in { appearance: none; background-image: linear-gradient(45deg, transpare
 		$('f-desc').value = p ? p.description : '';
 		$('f-date').value = (p && p.date) || new Date().toISOString().slice(0, 10);
 		$('f-home').checked = p ? p.show_on_home : true;
+		$('f-live').checked = p ? p.published !== false : true;
 		if (p) {
 			p.images.forEach(function (path) {
 				var it = { key: 'k' + (++keySeq), kind: 'existing', path: path, preview: path };
@@ -1099,7 +1145,7 @@ select.in { appearance: none; background-image: linear-gradient(45deg, transpare
 				uploads: uploads,
 				project: {
 					title: title, category: main, categories: [main].concat(also).filter(Boolean),
-					date: $('f-date').value, show_on_home: $('f-home').checked,
+					date: $('f-date').value, show_on_home: $('f-home').checked, published: $('f-live').checked,
 					cover: cover || '', description: $('f-desc').value, youtube: links, images: images
 				}
 			});
@@ -1287,10 +1333,11 @@ select.in { appearance: none; background-image: linear-gradient(45deg, transpare
 		if (!$('v-app') || $('v-dash').hidden) return;
 		msg($('dash-msg'), dash.error);
 		var ps = state.projects, photos = 0, videos = 0, onHome = 0;
-		ps.forEach(function (p) { photos += p.images.length; videos += p.youtube.length; if (p.show_on_home) onHome++; });
+		var off = 0;
+		ps.forEach(function (p) { photos += p.images.length; videos += p.youtube.length; if (p.published === false) off++; else if (p.show_on_home) onHome++; });
 		var ready = dash.loaded;
 		$('s-projects').textContent = ready ? ps.length : '–';
-		$('s-projects-sub').textContent = ready ? onHome + ' on the Home page' : '\u00a0';
+		$('s-projects-sub').textContent = ready ? (ps.length - off) + ' live' + (off ? ' · ' + off + ' hidden' : ' · ' + onHome + ' on Home') : '\u00a0';
 		$('s-videos').textContent = ready ? videos : '–';
 		$('s-photos').textContent = ready ? photos : '–';
 		$('s-new').textContent = tst.subsLoaded ? tst.subs.length : '–';

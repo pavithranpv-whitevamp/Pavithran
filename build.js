@@ -82,6 +82,8 @@ const projects = (fs.existsSync(PROJECTS) ? fs.readdirSync(PROJECTS) : [])
       })(),
       date: String(d.date || ''),
       home: d.show_on_home !== false,
+      // switched off in the admin: kept in the repo, but not built into the site
+      published: d.published !== false,
       description: String(d.description || ''),
       cover, images, yts, vids,
       // every single piece of work in this project, videos first
@@ -91,7 +93,7 @@ const projects = (fs.existsSync(PROJECTS) ? fs.readdirSync(PROJECTS) : [])
       ],
     };
   })
-  .filter(Boolean)
+  .filter((p) => p && p.published)
   .sort((a, b) => (b.date || '').localeCompare(a.date || '') || a.title.localeCompare(b.title));
 
 // ---------- pieces of HTML ----------

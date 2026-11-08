@@ -33,8 +33,8 @@
 	var current = JOBS[JOBS.length - 1];
 
 	var wa = function (text) { return 'https://wa.me/' + WA_NUMBER + (text ? '?text=' + encodeURIComponent(text) : ''); };
-	var WA_HIRE = 'Hi Pavithran, I found your portfolio website and I’d like to talk about an opportunity.';
-	var WA_CV = 'Hi Pavithran, I visited your portfolio website. Could you please share your latest CV?';
+	var WA_HIRE = 'Hello Pavithran, this is [Your name] from [Company name]. We came across your portfolio and would like to discuss a Graphic Designer / Video Editor position with you. Are you available for a short call?';
+	var WA_CV = 'Hello Pavithran, this is [Your name] from [Company name]. We are reviewing profiles for a design role and would like to see your latest CV. Could you please share it?';
 
 	// Quick-reply buttons. kind: "ask" (asks the assistant) or "link".
 	var C = {

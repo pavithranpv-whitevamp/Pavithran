@@ -1,6 +1,15 @@
 {
   "testimonials": [
     {
+      "name": "Gowdham",
+      "role": "Senior Graphic Designer",
+      "company": "",
+      "relation": "Colleague",
+      "quote": "Working with Pavithran was a really good experience. He's friendly, supportive, and has a great approach to work. His workflow and communication make things easy, and he always makes sure the work gets done smoothly. I'd definitely recommend him to anyone looking for a reliable and dedicated professional.",
+      "link": "",
+      "show": true
+    },
+    {
       "name": "Austin Raj",
       "role": "Video Editor",
       "company": "Impressive Innovations and Solutions Pvt. Ltd.",

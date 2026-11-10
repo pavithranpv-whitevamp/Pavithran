@@ -166,6 +166,8 @@ function normaliseProject(input) {
     show_on_home: input.show_on_home !== false,
     cover,
     description: clean(input.description, 5000),
+    software: (Array.isArray(input.software) ? input.software : []).map((x) => clean(x, 60)).filter(Boolean)
+      .filter((x, i, a) => a.findIndex((y) => y.toLowerCase() === x.toLowerCase()) === i).slice(0, 12),
     youtube,
     images,
     hidden,
@@ -186,6 +188,7 @@ function parseProjectFile(name, text) {
     show_on_home: d.show_on_home !== false,
     cover: d.cover ? '/' + String(d.cover).replace(/^\/+/, '') : '',
     description: d.description || '',
+    software: (Array.isArray(d.software) ? d.software : []).map((x) => String(x || '').trim()).filter(Boolean),
     youtube: asList(d.youtube),
     images: asList(d.images).map((p) => (/^https?:/.test(p) ? p : '/' + p.replace(/^\/+/, ''))),
     hidden: (Array.isArray(d.hidden) ? d.hidden : []).map((h) => { h = String(h || '').trim(); return /^https?:|^\//.test(h) || !h ? h : '/' + h; }).filter(Boolean),

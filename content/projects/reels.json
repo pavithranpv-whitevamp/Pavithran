@@ -5,6 +5,10 @@
     "Video Editing",
     "Motion Graphics"
   ],
+  "software": [
+    "Adobe Premiere Pro",
+    "Adobe After Effects"
+  ],
   "date": "2026-11-04",
   "show_on_home": true,
   "cover": "/images/reels-cover.jpg",

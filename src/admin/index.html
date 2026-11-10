@@ -525,6 +525,11 @@ select.in { appearance: none; background-image: linear-gradient(45deg, transpare
 			<section class="sec">
 				<h3>More</h3>
 				<div class="field">
+					<span class="lbl" id="sw-lbl">Software used</span>
+					<div class="chips" id="sw" role="group" aria-labelledby="sw-lbl"></div>
+					<span class="hint">Shown on the project page. Tap to switch each one on or off.</span>
+				</div>
+				<div class="field">
 					<label for="f-desc">Description <span style="font-weight:500;color:var(--muted)">(optional)</span></label>
 					<textarea class="in" id="f-desc" maxlength="5000" placeholder="Who it was for, what you made, the tools you used."></textarea>
 				</div>
@@ -861,6 +866,8 @@ select.in { appearance: none; background-image: linear-gradient(45deg, transpare
 		renderAlso();
 		$('chip-new').hidden = true; $('f-newcat').value = '';
 		$('f-desc').value = p ? p.description : '';
+		state.software = p && p.software ? p.software.slice() : [];
+		renderSoftware();
 		$('f-date').value = (p && p.date) || new Date().toISOString().slice(0, 10);
 		$('f-home').checked = p ? p.show_on_home : true;
 		if (p) {
@@ -1067,6 +1074,24 @@ select.in { appearance: none; background-image: linear-gradient(45deg, transpare
 	}
 	$('vid-add').addEventListener('click', function () { addVid('').focus(); });
 
+	// ---------- software used ----------
+	var SOFTWARE = ['Adobe Photoshop', 'Adobe Illustrator', 'Adobe Premiere Pro', 'Adobe After Effects'];
+	function renderSoftware() {
+		var box = $('sw'); box.innerHTML = '';
+		SOFTWARE.concat((state.software || []).filter(function (s) { return SOFTWARE.indexOf(s) === -1; })).forEach(function (name) {
+			var b = document.createElement('button');
+			b.type = 'button'; b.className = 'chip'; b.textContent = name;
+			b.setAttribute('aria-pressed', state.software.indexOf(name) !== -1 ? 'true' : 'false');
+			b.addEventListener('click', function () {
+				var i = state.software.indexOf(name);
+				if (i === -1) state.software.push(name); else state.software.splice(i, 1);
+				b.setAttribute('aria-pressed', i === -1 ? 'true' : 'false');
+				state.dirty = true; setStatus('Not published yet', 'Changes go live when you press Publish.', 0);
+			});
+			box.appendChild(b);
+		});
+	}
+
 	['f-title', 'f-desc', 'f-date', 'f-home'].forEach(function (id) {
 		$(id).addEventListener('input', function () { state.dirty = true; });
 		$(id).addEventListener('change', function () { state.dirty = true; });
@@ -1145,7 +1170,7 @@ select.in { appearance: none; background-image: linear-gradient(45deg, transpare
 				project: {
 					title: title, category: main, categories: [main].concat(also).filter(Boolean),
 					date: $('f-date').value, show_on_home: $('f-home').checked,
-					cover: cover || '', description: $('f-desc').value, youtube: links, images: images,
+					cover: cover || '', description: $('f-desc').value, software: (state.software || []).slice(), youtube: links, images: images,
 					hidden: state.items.filter(function (it) { return it.off; }).map(function (it) { return it.path; }).concat(offLinks)
 				}
 			});

@@ -87,6 +87,10 @@ const projects = (fs.existsSync(PROJECTS) ? fs.readdirSync(PROJECTS) : [])
       date: String(d.date || ''),
       home: d.show_on_home !== false,
       description: String(d.description || ''),
+      // software used on this project (e.g. "Adobe Photoshop"), shown on its page
+      software: (Array.isArray(d.software) ? d.software : [d.software])
+        .map((x) => String(x || '').trim()).filter(Boolean)
+        .filter((x, i, a) => a.findIndex((y) => y.toLowerCase() === x.toLowerCase()) === i),
       cover, images, yts, vids,
       // every upload switched off: nothing to show, so the project is left off the site
       everythingOff: !images.length && !vids.length && hiddenRaw.length > 0,
@@ -155,6 +159,20 @@ ${cats.map((c) => `			<li><button type="button" data-filter="${catSlug(c)}" aria
 		</ul>`
   : '';
 
+// Icons for the software chips on project pages (anything else shows as a plain text chip).
+const SOFTWARE_ICONS = {
+  'adobe photoshop': '/images/photoshop-300x300.png',
+  'adobe illustrator': '/images/illustrator-300x300.png',
+  'adobe premiere pro': '/images/premiere-pro-300x300.png',
+  'adobe after effects': '/images/after-effects-300x300.png',
+};
+const softwareList = (p) => p.software.length
+  ? `<div class="project-tools"><span class="project-tools-lbl">Software used</span><ul>${p.software.map((s) => {
+    const ic = SOFTWARE_ICONS[s.toLowerCase()];
+    return `<li class="tool-chip">${ic ? `<img src="${ic}" alt="" width="24" height="24" loading="lazy" decoding="async">` : ''}<span>${esc(s)}</span></li>`;
+  }).join('')}</ul></div>`
+  : '';
+
 function projectBody(p, i) {
   const prev = projects[i - 1], next = projects[i + 1];
   const lite = (v, n) => `<a class="yt-lite${v.short ? ' yt-lite--v' : ''}" href="${v.short ? `https://www.youtube.com/shorts/${v.id}` : `https://www.youtube.com/watch?v=${v.id}`}" data-yt="${v.id}" data-label="${esc(p.title)}${p.vids.length > 1 ? ` — video ${n + 1}` : ''}" target="_blank" rel="noopener" aria-label="Play ${esc(p.title)}${p.vids.length > 1 ? ` video ${n + 1}` : ''}">${thumbImg({ kind: 'video', ...v }, '', n < 4 ? ' loading="eager"' : '')}<span class="piece-play" aria-hidden="true"></span></a>`;
@@ -171,6 +189,7 @@ function projectBody(p, i) {
 			${p.categories.length ? `<span class="eyebrow">${p.categories.map(esc).join(' &middot; ')}</span>` : ''}
 			<h1>${esc(p.title)}</h1>
 			${counts(p) ? `<p class="project-count">${counts(p)}</p>` : ''}
+			${softwareList(p)}
 			${p.description ? `<div class="project-desc">${paragraphs(p.description)}</div>` : ''}
 		</div>
 	</header>

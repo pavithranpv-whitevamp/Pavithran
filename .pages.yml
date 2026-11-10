@@ -35,6 +35,14 @@ content:
         list: true
         description: Optional. Extra categories this project also appears under on the Portfolio page.
 
+      - name: software
+        label: Software used
+        type: select
+        description: Shown on the project page.
+        options:
+          multiple: true
+          values: [Adobe Photoshop, Adobe Illustrator, Adobe Premiere Pro, Adobe After Effects]
+
       - name: date
         label: Date
         type: date

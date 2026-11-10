@@ -119,24 +119,61 @@
 		});
 	}
 
-	// Portfolio category filter (all projects stay visible if JavaScript is off)
+	// Portfolio filters: category buttons + the software dock work together
+	// (all projects stay visible if JavaScript is off)
 	var buttons = document.querySelectorAll('[data-filter]');
+	var apps = document.querySelectorAll('[data-sw-filter]');
 	var cards = document.querySelectorAll('.work-grid [data-cats], .wall [data-cats]');
+	var cur = { cat: 'all', sw: '', label: '' };
+	var swStatus = document.querySelector('.sw-status-txt');
+	var applyFilters = function () {
+		var shown = 0;
+		cards.forEach(function (c) {
+			var cats = (c.getAttribute('data-cats') || '').split(' ');
+			var sws = (c.getAttribute('data-sw') || '').split(' ');
+			c.hidden = !((cur.cat === 'all' || cats.indexOf(cur.cat) !== -1) && (!cur.sw || sws.indexOf(cur.sw) !== -1));
+			if (!c.hidden) { c.classList.add('is-in'); if (c.classList.contains('piece')) shown++; }
+			// The tag shows the category you're looking at; "All" shows the main one.
+			var tag = c.querySelector('.card-cat');
+			if (tag) { tag.textContent = cur.cat === 'all' ? (c.getAttribute('data-main') || tag.textContent) : cur.label; }
+		});
+		if (swStatus) {
+			var active = cur.sw && document.querySelector('[data-sw-filter="' + cur.sw + '"]');
+			swStatus.parentNode.classList.toggle('is-on', !!active);
+			swStatus.textContent = active
+				? (shown ? shown + (shown === 1 ? ' piece' : ' pieces') + ' made in ' + active.getAttribute('data-sw-name') : 'Nothing made in ' + active.getAttribute('data-sw-name') + ' here yet') + ' — tap again to close'
+				: 'Tap an app to see the work made in it';
+		}
+	};
 	buttons.forEach(function (btn) {
 		btn.addEventListener('click', function () {
-			var f = btn.getAttribute('data-filter');
+			cur.cat = btn.getAttribute('data-filter');
+			cur.label = btn.textContent.replace(/\s*\d+\s*$/, '').trim();
 			buttons.forEach(function (b) { b.setAttribute('aria-pressed', b === btn ? 'true' : 'false'); });
-			var label = btn.textContent;
-			cards.forEach(function (c) {
-				var list = (c.getAttribute('data-cats') || '').split(' ');
-				c.hidden = !(f === 'all' || list.indexOf(f) !== -1);
-				if (!c.hidden) { c.classList.add('is-in'); }
-				// The tag shows the category you're looking at; "All" shows the main one.
-				var tag = c.querySelector('.card-cat');
-				if (tag) { tag.textContent = f === 'all' ? (c.getAttribute('data-main') || tag.textContent) : label; }
-			});
+			applyFilters();
 		});
 	});
+	apps.forEach(function (app) {
+		app.addEventListener('click', function () {
+			var k = app.getAttribute('data-sw-filter');
+			cur.sw = cur.sw === k ? '' : k;
+			apps.forEach(function (a) { a.setAttribute('aria-pressed', a.getAttribute('data-sw-filter') === cur.sw ? 'true' : 'false'); });
+			if (cur.sw) { app.classList.remove('is-launch'); void app.offsetWidth; app.classList.add('is-launch'); }
+			applyFilters();
+		});
+		app.addEventListener('animationend', function () { app.classList.remove('is-launch'); });
+	});
+	// Dock magnification: icons near the pointer grow, like a real app dock
+	var dockEl = document.querySelector('.sw-dock');
+	if (dockEl && window.matchMedia('(hover: hover) and (prefers-reduced-motion: no-preference)').matches) {
+		dockEl.addEventListener('mousemove', function (e) {
+			apps.forEach(function (a) {
+				var r = a.getBoundingClientRect(), d = Math.abs(e.clientX - (r.left + r.width / 2));
+				a.style.setProperty('--mag', Math.max(0, 1 - d / 150).toFixed(3));
+			});
+		});
+		dockEl.addEventListener('mouseleave', function () { apps.forEach(function (a) { a.style.setProperty('--mag', 0); }); });
+	}
 
 	// Project images: click to view large, with previous/next and Esc to close
 	var shots = Array.prototype.slice.call(document.querySelectorAll('.entry .gallery img'));

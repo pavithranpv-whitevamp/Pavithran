@@ -106,6 +106,7 @@ const projects = (fs.existsSync(PROJECTS) ? fs.readdirSync(PROJECTS) : [])
 
 // ---------- pieces of HTML ----------
 const catSlug = (c) => slugify(c || 'other');
+const swSlug = (s) => slugify(String(s || '').replace(/^adobe\s+/i, ''));
 const plural = (n, one, many) => `${n} ${n === 1 ? one : many}`;
 const ytThumb = (id) => `https://i.ytimg.com/vi/${id}/hqdefault.jpg`;
 // Shorts have a proper vertical thumbnail (oar2); fall back to the normal one if it is missing.
@@ -123,7 +124,7 @@ const piece = (p, pc, n, cls = '') => {
   const label = `${p.title} — ${pc.kind === 'video' ? 'video' : 'design'} ${n + 1}`;
   const href = pc.kind === 'video' ? (pc.short ? `https://www.youtube.com/shorts/${pc.id}` : `https://www.youtube.com/watch?v=${pc.id}`) : pc.src;
   const data = pc.kind === 'video' ? `data-yt="${pc.id}"${pc.short ? ' data-short' : ''}` : `data-img="${esc(pc.src)}"`;
-  return `<a class="piece piece--${shape}${cls ? ' ' + cls : ''} reveal" href="${esc(href)}" ${data} data-title="${esc(p.title)}" data-project="/work/${p.slug}/" data-cats="${p.categories.map(catSlug).join(' ')}" target="_blank" rel="noopener" aria-label="${esc(pc.kind === 'video' ? 'Play ' : 'View ')}${esc(label)}">
+  return `<a class="piece piece--${shape}${cls ? ' ' + cls : ''} reveal" href="${esc(href)}" ${data} data-title="${esc(p.title)}" data-project="/work/${p.slug}/" data-cats="${p.categories.map(catSlug).join(' ')}" data-sw="${p.software.map(swSlug).join(' ')}" target="_blank" rel="noopener" aria-label="${esc(pc.kind === 'video' ? 'Play ' : 'View ')}${esc(label)}">
 		${thumbImg(pc, label)}
 		${pc.kind === 'video' ? '<span class="piece-play" aria-hidden="true"></span>' : '<span class="piece-zoom" aria-hidden="true"></span>'}
 		<span class="piece-info"><span class="piece-cat">${esc(p.category || (pc.kind === 'video' ? 'Video' : 'Design'))}</span><span class="piece-title">${esc(p.title)}</span></span>
@@ -138,7 +139,7 @@ const mixPieces = (list, max = Infinity) => {
   return out;
 };
 
-const card = (p) => `<a class="card reveal" href="/work/${p.slug}/" data-cats="${p.categories.map(catSlug).join(' ')}"${p.category ? ` data-main="${esc(p.category)}"` : ''}>
+const card = (p) => `<a class="card reveal" href="/work/${p.slug}/" data-cats="${p.categories.map(catSlug).join(' ')}" data-sw="${p.software.map(swSlug).join(' ')}"${p.category ? ` data-main="${esc(p.category)}"` : ''}>
 	<div class="card-media">
 		${p.cover ? `<img src="${esc(p.cover)}" alt="${esc(p.title)}" loading="lazy">` : `<span class="card-ph" aria-hidden="true">${esc(p.title.charAt(0))}</span>`}
 		<span class="card-arrow" aria-hidden="true">&nearr;</span>
@@ -171,6 +172,37 @@ const softwareList = (p) => p.software.length
     const ic = SOFTWARE_ICONS[s.toLowerCase()];
     return `<li class="tool-chip">${ic ? `<img src="${ic}" alt="" width="24" height="24" loading="lazy" decoding="async">` : ''}<span>${esc(s)}</span></li>`;
   }).join('')}</ul></div>`
+  : '';
+
+// Software dock on the Portfolio page: filter the work by the app it was made in.
+const SW_META = {
+  'photoshop': { code: 'Ps', color: '#31A8FF' },
+  'illustrator': { code: 'Ai', color: '#FF9A00' },
+  'premiere-pro': { code: 'Pr', color: '#EA77FF' },
+  'after-effects': { code: 'Ae', color: '#9999FF' },
+};
+const swAll = [];
+for (const p of projects) for (const s of p.software) if (!swAll.some((x) => swSlug(x) === swSlug(s))) swAll.push(s);
+const swOrder = Object.keys(SW_META);
+swAll.sort((a, b) => ((swOrder.indexOf(swSlug(a)) + 1) || 99) - ((swOrder.indexOf(swSlug(b)) + 1) || 99));
+const dock = swAll.length
+  ? `<div class="sw-dock-wrap">
+			<div class="sw-dock" role="group" aria-label="Filter by software">
+				<span class="sw-dock-lbl">Made in</span>
+${swAll.map((s) => {
+    const k = swSlug(s), m = SW_META[k] || { code: s.replace(/^adobe\s+/i, '').slice(0, 2), color: '#F2AB01' };
+    const n = projects.filter((p) => p.software.some((x) => swSlug(x) === k)).reduce((a, p) => a + p.pieces.length, 0);
+    const ic = SOFTWARE_ICONS[s.toLowerCase()];
+    return `				<button type="button" class="sw-app" data-sw-filter="${k}" data-sw-name="${esc(s.replace(/^adobe\s+/i, ''))}" data-n="${n}" aria-pressed="false" style="--app:${m.color}">
+					<span class="sw-app-ic">${ic ? `<img src="${ic}" alt="" width="56" height="56">` : `<b>${esc(m.code)}</b>`}</span>
+					<span class="sw-app-tip">${esc(s)} <i>${n}</i></span>
+					<span class="sw-app-dot" aria-hidden="true"></span>
+					<span class="screen-reader-text">${esc(s)}, ${n} pieces</span>
+				</button>`;
+  }).join('\n')}
+			</div>
+			<p class="sw-status" aria-live="polite"><span class="sw-status-txt">Tap an app to see the work made in it</span></p>
+		</div>`
   : '';
 
 function projectBody(p, i) {
@@ -238,7 +270,7 @@ fill('index.html', {
   '<!--WORK_STATS-->': statLine.map((t) => `<span>${t}</span>`).join(''),
 });
 fill('portfolio/index.html', {
-  '<!--FILTERS-->': filters,
+  '<!--FILTERS-->': filters + dock,
   '<!--WORK_STATS-->': statLine.map((t) => `<span>${t}</span>`).join(''),
   '<!--ALL_CARDS-->': projects.length ? projects.map(card).join('\n') : empty,
   '<!--ALL_PIECES-->': mixPieces(projects).map((x) => piece(x.p, x.pc, x.n)).join('\n'),

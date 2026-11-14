@@ -66,6 +66,18 @@ Cloudflare's free KV plan allows 1 GB of storage in total and about 1,000 saves 
 - **About page:** "My Creative Approach" and "What makes my work different" are in
   `src/about-me/index.html` (search for `ap-steps` and `dif-grid`) — edit the wording any time.
 
+## Unsolicited Redesigns
+
+The Portfolio page has two tabs: **Work** (your own projects) and **Unsolicited Redesigns**
+(designs you saw somewhere and redid in your style). To add one: admin → **+ Add new work** →
+switch on **This is an Unsolicited Redesign** → add a photo of the original and your redesign →
+tap **B** on the original to mark it as **Before** → optionally fill in where you saw it and
+**What I changed** (one point per line) → **Publish**.
+
+The redesign page shows a drag-to-compare Before/After slider, your "What I changed" list and a short
+note that it's a personal concept, not commissioned by the original business. The Before photo is
+never shown in the work wall or counted as your own work.
+
 ## WhatsApp button, recruiter assistant and Career Timeline
 
 - **WhatsApp button + "Cue" (the "Hiring? Ask Cue" chat)** appear on every public page, with gentle animations. Both live in

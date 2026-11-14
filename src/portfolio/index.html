@@ -48,29 +48,61 @@
 		<a class="btn-cv" href="#">Download CV</a>
 	</div>
 </header>
-<main id="main">
-<header class="page-head pf-head">
-	<div class="wrap">
-		<span class="eyebrow">Selected work</span>
-		<h1>Portfolio</h1>
-		<p>Design, motion and video &mdash; every piece plays right here. Pick a category, open a project, or tap any piece to watch it.</p>
-		<p class="work-stats"><!--WORK_STATS--></p>
-	</div>
-</header>
+<main id="main" class="pf-page">
+<div class="pf-cover" aria-hidden="true"><span class="pf-cover-grid"></span><span class="pf-cover-word">Portfolio</span></div>
+<div class="wrap pf-layout">
+	<aside class="pf-profile" aria-label="About Pavithran">
+		<div class="pf-card">
+			<img class="pf-avatar" src="/images/21515369481-1024x1024.jpg" alt="Pavithran" width="120" height="120">
+			<h1 class="pf-name"><span class="screen-reader-text">Portfolio of </span>Pavithran</h1>
+			<p class="pf-role">Graphic Designer &amp; Motion Graphics Video Editor</p>
+			<p class="pf-loc"><svg viewBox="0 0 16 16" aria-hidden="true"><path d="M8 15s5-4.6 5-8.5A5 5 0 0 0 3 6.5C3 10.4 8 15 8 15z" fill="none" stroke="currentColor" stroke-width="1.5"/><circle cx="8" cy="6.5" r="1.8" fill="currentColor"/></svg>Tirupur, Tamil Nadu</p>
+			<div class="pf-actions">
+				<a class="btn btn--gold" href="/contact/">Hire me</a>
+				<a class="btn btn--line" href="/about-me/">About me</a>
+			</div>
+			<ul class="pf-stats"><!--PF_STATS--></ul>
+			<div class="pf-tools">
+				<span class="pf-label">Tools</span>
+				<ul><!--PF_TOOLS--></ul>
+			</div>
+			<p class="pf-avail"><span class="pf-dot" aria-hidden="true"></span>Open to freelance &amp; full-time work</p>
+		</div>
+	</aside>
 
-<section class="section pf">
-	<div class="wrap">
-		<!--FILTERS-->
-		<div class="pf-sub"><h2>Projects</h2><span>Each one opens with every video and design in it</span></div>
-		<div class="work-grid">
-<!--ALL_CARDS-->
+	<div class="pf-main">
+		<div class="pf-tabs" role="tablist" aria-label="Portfolio sections">
+			<a class="pf-tab" role="tab" id="tab-work" href="#work" aria-controls="work" aria-selected="true">Work <span class="n"><!--N_WORK--></span></a>
+			<a class="pf-tab" role="tab" id="tab-redesigns" href="#redesigns" aria-controls="redesigns" aria-selected="false">Unsolicited Redesigns <span class="n"><!--N_RD--></span></a>
 		</div>
-		<div class="pf-sub pf-sub--pieces"><h2>Every piece</h2><span>Tap to play &mdash; use the arrows to keep watching</span></div>
-		<div class="wall">
+
+		<section class="pf-panel" id="work" role="tabpanel" aria-labelledby="tab-work" data-panel="work">
+			<h2 class="screen-reader-text">Work</h2>
+			<!--WORK_FILTERS-->
+			<div class="work-grid" data-scope="work">
+<!--WORK_CARDS-->
+			</div>
+			<div class="pf-sub pf-sub--pieces"><h2>Every piece</h2><span>Tap to play &mdash; use the arrows to keep watching</span></div>
+			<div class="wall" data-scope="work">
 <!--ALL_PIECES-->
-		</div>
+			</div>
+		</section>
+
+		<section class="pf-panel" id="redesigns" role="tabpanel" aria-labelledby="tab-redesigns" data-panel="rd">
+			<div class="rd-intro">
+				<div>
+					<h2>Unsolicited Redesigns</h2>
+					<p>Designs I came across in everyday life, reimagined in my style. Personal concepts, not commissioned by the original owners.</p>
+				</div>
+				<span class="rd-legend" aria-hidden="true"><i>Before</i><i>After</i></span>
+			</div>
+			<!--RD_FILTERS-->
+			<div class="work-grid" data-scope="rd">
+<!--RD_CARDS-->
+			</div>
+		</section>
 	</div>
-</section>
+</div>
 </main>
 <section class="marquee" aria-label="Software I work with">
 	<div class="marquee-track">

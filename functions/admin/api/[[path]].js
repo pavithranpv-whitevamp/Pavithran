@@ -171,6 +171,13 @@ function normaliseProject(input) {
     youtube,
     images,
     hidden,
+    // Unsolicited Redesign: "before" is the photo of the original design (one of the images)
+    ...(input.redesign === true ? {
+      redesign: true,
+      before: images.includes(String(input.before || '').trim()) ? String(input.before).trim() : '',
+      seen_at: clean(input.seen_at, 120),
+      changes: clean(input.changes, 1500),
+    } : {}),
   };
 }
 
@@ -192,6 +199,10 @@ function parseProjectFile(name, text) {
     youtube: asList(d.youtube),
     images: asList(d.images).map((p) => (/^https?:/.test(p) ? p : '/' + p.replace(/^\/+/, ''))),
     hidden: (Array.isArray(d.hidden) ? d.hidden : []).map((h) => { h = String(h || '').trim(); return /^https?:|^\//.test(h) || !h ? h : '/' + h; }).filter(Boolean),
+    redesign: d.redesign === true,
+    before: d.redesign === true && d.before ? '/' + String(d.before).replace(/^\/+/, '') : '',
+    seen_at: d.seen_at || '',
+    changes: d.changes || '',
     broken: !!d._broken,
   };
 }
@@ -313,6 +324,8 @@ async function saveProject(request, env) {
   const project = normaliseProject(body.project);
   if (!project.title) return fail(400, 'Please give the project a title.');
   if (!project.images.length && !project.youtube.length) return fail(400, 'Add at least one image or YouTube link.');
+  if (project.redesign && !project.before) return fail(400, 'For a redesign, mark the photo of the original design as "Before".');
+  if (project.redesign && project.images.length < 2) return fail(400, 'A redesign needs two photos: the original (Before) and your redesign (After).');
 
   // New images uploaded in this session: [{path: "/images/x.jpg", sha}]
   const uploads = (Array.isArray(body.uploads) ? body.uploads : [])

@@ -73,7 +73,13 @@ const projects = (fs.existsSync(PROJECTS) ? fs.readdirSync(PROJECTS) : [])
       vids.push({ id, short: /\/shorts\//i.test(l) });
     }
     const yts = vids.map((v) => v.id);
-    const cover = (hidden.has(imgPath(d.cover)) ? '' : imgPath(d.cover)) || images[0] || (yts[0] ? `https://i.ytimg.com/vi/${yts[0]}/hqdefault.jpg` : '');
+    // Unsolicited Redesign: "before" is a photo of someone else's original design. It is shown only
+    // next to the redesign (never as Pavithran's own work), and the rest of the photos are the "after".
+    const redesign = d.redesign === true;
+    const before = redesign && images.includes(imgPath(d.before)) ? imgPath(d.before) : '';
+    const own = images.filter((src) => src !== before);
+    const pickedCover = hidden.has(imgPath(d.cover)) ? '' : imgPath(d.cover);
+    const cover = (pickedCover && pickedCover !== before ? pickedCover : '') || own[0] || (yts[0] ? `https://i.ytimg.com/vi/${yts[0]}/hqdefault.jpg` : '') || before;
     return {
       slug: slugify(f),
       title: String(d.title || slugify(f).replace(/-/g, ' ')).trim(),
@@ -91,13 +97,16 @@ const projects = (fs.existsSync(PROJECTS) ? fs.readdirSync(PROJECTS) : [])
       software: (Array.isArray(d.software) ? d.software : [d.software])
         .map((x) => String(x || '').trim()).filter(Boolean)
         .filter((x, i, a) => a.findIndex((y) => y.toLowerCase() === x.toLowerCase()) === i),
-      cover, images, yts, vids,
+      cover, images: own, yts, vids,
+      redesign, before,
+      seenAt: redesign ? String(d.seen_at || '').trim() : '',
+      changes: redesign ? String(d.changes || '').split(/\n/).map((x) => x.replace(/^\s*[-•*\d.)]+\s*/, '').trim()).filter(Boolean) : [],
       // every upload switched off: nothing to show, so the project is left off the site
-      everythingOff: !images.length && !vids.length && hiddenRaw.length > 0,
+      everythingOff: !own.length && !vids.length && !before && hiddenRaw.length > 0,
       // every single piece of work in this project, videos first
       pieces: [
         ...vids.map((v) => ({ kind: 'video', id: v.id, short: v.short })),
-        ...images.map((src) => ({ kind: 'image', src })),
+        ...own.map((src) => ({ kind: 'image', src })),
       ],
     };
   })
@@ -139,26 +148,45 @@ const mixPieces = (list, max = Infinity) => {
   return out;
 };
 
-const card = (p) => `<a class="card reveal" href="/work/${p.slug}/" data-cats="${p.categories.map(catSlug).join(' ')}" data-sw="${p.software.map(swSlug).join(' ')}"${p.category ? ` data-main="${esc(p.category)}"` : ''}>
+// Little icons for the counts under each card (a stats row, like on Behance)
+const ICON_IMG = '<svg viewBox="0 0 16 16" aria-hidden="true"><rect x="1.5" y="2.5" width="13" height="11" rx="2" fill="none" stroke="currentColor" stroke-width="1.5"/><circle cx="5.5" cy="6.5" r="1.3" fill="currentColor"/><path d="M2.5 12l3.5-3.5 2.5 2.5 2-2 3 3" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linejoin="round"/></svg>';
+const ICON_VID = '<svg viewBox="0 0 16 16" aria-hidden="true"><rect x="1.5" y="2.5" width="13" height="11" rx="2" fill="none" stroke="currentColor" stroke-width="1.5"/><path d="M6.5 5.6v4.8L10.4 8z" fill="currentColor"/></svg>';
+const statIcons = (p) => {
+  const v = p.pieces.filter((x) => x.kind === 'video').length, i = p.pieces.length - v;
+  return [i ? `<span title="${plural(i, 'design', 'designs')}">${ICON_IMG}${i}</span>` : '', v ? `<span title="${plural(v, 'video', 'videos')}">${ICON_VID}${v}</span>` : ''].join('');
+};
+
+const card = (p) => `<a class="card${p.redesign ? ' card--rd' : ''} reveal" href="/work/${p.slug}/" data-cats="${p.categories.map(catSlug).join(' ')}" data-sw="${p.software.map(swSlug).join(' ')}"${p.category ? ` data-main="${esc(p.category)}"` : ''}>
 	<div class="card-media">
-		${p.cover ? `<img src="${esc(p.cover)}" alt="${esc(p.title)}" loading="lazy">` : `<span class="card-ph" aria-hidden="true">${esc(p.title.charAt(0))}</span>`}
-		<span class="card-arrow" aria-hidden="true">&nearr;</span>
-		<span class="card-info">${p.category ? `<span class="card-cat">${esc(p.category)}</span>` : ''}<span class="card-title">${esc(p.title)}</span></span>
-		${counts(p) ? `<span class="card-count">${counts(p)}</span>` : ''}
+		${p.cover ? `<img class="card-img" src="${esc(p.cover)}" alt="${esc(p.title)}" loading="lazy" decoding="async">` : `<span class="card-ph" aria-hidden="true">${esc(p.title.charAt(0))}</span>`}
+		${p.redesign && p.before ? `<img class="card-before" src="${esc(p.before)}" alt="" loading="lazy" decoding="async"><span class="card-split" aria-hidden="true"><i>Before</i><i>After</i></span>` : ''}
+		${p.redesign ? '<span class="card-badge">Redesign</span>' : ''}
+		<span class="card-hover" aria-hidden="true"><span class="card-view">${p.redesign ? 'See the redesign' : 'View project'} &rarr;</span></span>
 	</div>
-	${p.pieces.length ? `<div class="card-strip" aria-hidden="true">${p.pieces.slice(0, 4).map((pc, n) => `<span class="${pc.kind === 'image' || !pc.short ? 'w' : ''}">${thumbImg(pc, '')}${n === 3 && p.pieces.length > 4 ? `<b>+${p.pieces.length - 3}</b>` : ''}</span>`).join('')}</div>` : ''}
+	<div class="card-meta">
+		<span class="card-title">${esc(p.title)}</span>
+		<span class="card-sub"><span class="card-cat">${esc(p.category || (p.redesign ? 'Redesign' : 'Project'))}</span><span class="card-stats">${statIcons(p)}</span></span>
+	</div>
 </a>`;
 
 const empty = `<div class="empty"><span class="eyebrow">Coming soon</span><p>New work is on its way.</p></div>`;
+const emptyRd = `<div class="empty empty--rd"><span class="eyebrow">Coming soon</span><p>The first redesign is on its way.</p></div>`;
 
-const cats = [];
-for (const p of projects) for (const c of p.categories) if (!cats.some((x) => catSlug(x) === catSlug(c))) cats.push(c);
-const filters = cats.length > 1
-  ? `<ul class="filters" aria-label="Filter projects">
-			<li><button type="button" data-filter="all" aria-pressed="true">All <span class="n">${projects.reduce((a, p) => a + p.pieces.length, 0)}</span></button></li>
-${cats.map((c) => `			<li><button type="button" data-filter="${catSlug(c)}" aria-pressed="false">${esc(c)} <span class="n">${projects.filter((p) => p.categories.some((x) => catSlug(x) === catSlug(c))).reduce((a, p) => a + p.pieces.length, 0)}</span></button></li>`).join('\n')}
-		</ul>`
-  : '';
+// The two collections on the Portfolio page: own work, and Unsolicited Redesigns
+const work = projects.filter((p) => !p.redesign);
+const redesigns = projects.filter((p) => p.redesign);
+
+// Category buttons for one collection (each tab on the Portfolio page has its own)
+const filterBar = (list, scope, label) => {
+  const cs = [];
+  for (const p of list) for (const c of p.categories) if (!cs.some((x) => catSlug(x) === catSlug(c))) cs.push(c);
+  if (cs.length < 2) return '';
+  const n = (c) => list.filter((p) => p.categories.some((x) => catSlug(x) === catSlug(c))).length;
+  return `<ul class="filters" data-scope="${scope}" aria-label="${esc(label)}">
+			<li><button type="button" data-filter="all" aria-pressed="true">All <span class="n">${list.length}</span></button></li>
+${cs.map((c) => `			<li><button type="button" data-filter="${catSlug(c)}" aria-pressed="false">${esc(c)} <span class="n">${n(c)}</span></button></li>`).join('\n')}
+		</ul>`;
+};
 
 // Icons for the software chips on project pages (anything else shows as a plain text chip).
 const SOFTWARE_ICONS = {
@@ -182,7 +210,7 @@ const SW_META = {
   'after-effects': { code: 'Ae', color: '#9999FF' },
 };
 const swAll = [];
-for (const p of projects) for (const s of p.software) if (!swAll.some((x) => swSlug(x) === swSlug(s))) swAll.push(s);
+for (const p of work) for (const s of p.software) if (!swAll.some((x) => swSlug(x) === swSlug(s))) swAll.push(s);
 const swOrder = Object.keys(SW_META);
 swAll.sort((a, b) => ((swOrder.indexOf(swSlug(a)) + 1) || 99) - ((swOrder.indexOf(swSlug(b)) + 1) || 99));
 const dock = swAll.length
@@ -191,7 +219,7 @@ const dock = swAll.length
 				<span class="sw-dock-lbl">Made in</span>
 ${swAll.map((s) => {
     const k = swSlug(s), m = SW_META[k] || { code: s.replace(/^adobe\s+/i, '').slice(0, 2), color: '#F2AB01' };
-    const n = projects.filter((p) => p.software.some((x) => swSlug(x) === k)).reduce((a, p) => a + p.pieces.length, 0);
+    const n = work.filter((p) => p.software.some((x) => swSlug(x) === k)).reduce((a, p) => a + p.pieces.length, 0);
     const ic = SOFTWARE_ICONS[s.toLowerCase()];
     return `				<button type="button" class="sw-app" data-sw-filter="${k}" data-sw-name="${esc(s.replace(/^adobe\s+/i, ''))}" data-n="${n}" aria-pressed="false" style="--app:${m.color}">
 					<span class="sw-app-ic">${ic ? `<img src="${ic}" alt="" width="56" height="56">` : `<b>${esc(m.code)}</b>`}</span>
@@ -205,6 +233,28 @@ ${swAll.map((s) => {
 		</div>`
   : '';
 
+const ROLE = 'Graphic Designer &amp; Motion Graphics Video Editor';
+const AVATAR = '/images/21515369481-1024x1024.jpg';
+const longDate = (d) => {
+  const m = /^(\d{4})-(\d{2})-(\d{2})$/.exec(d || '');
+  if (!m) return '';
+  return `${+m[3]} ${['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December'][+m[2] - 1]} ${m[1]}`;
+};
+
+// Before / After comparison for an Unsolicited Redesign (drag the handle, or use the arrow keys)
+const compare = (p) => {
+  const after = p.images[0] || p.cover;
+  if (!p.before || !after) return '';
+  return `<div class="rd-compare" style="--pos:50%">
+				<img class="rd-after" src="${esc(after)}" alt="${esc(p.title)} — my redesign" loading="eager">
+				<img class="rd-before" src="${esc(p.before)}" alt="${esc(p.title)} — the original design" loading="eager">
+				<span class="rd-line" aria-hidden="true"><span class="rd-knob"></span></span>
+				<span class="rd-tag rd-tag--before" aria-hidden="true">Before</span>
+				<span class="rd-tag rd-tag--after" aria-hidden="true">After</span>
+				<input class="rd-range" type="range" min="0" max="100" value="50" aria-label="Compare the original and the redesign: slide left to see more of the redesign">
+			</div>`;
+};
+
 function projectBody(p, i) {
   const prev = projects[i - 1], next = projects[i + 1];
   const lite = (v, n) => `<a class="yt-lite${v.short ? ' yt-lite--v' : ''}" href="${v.short ? `https://www.youtube.com/shorts/${v.id}` : `https://www.youtube.com/watch?v=${v.id}`}" data-yt="${v.id}" data-label="${esc(p.title)}${p.vids.length > 1 ? ` — video ${n + 1}` : ''}" target="_blank" rel="noopener" aria-label="Play ${esc(p.title)}${p.vids.length > 1 ? ` video ${n + 1}` : ''}">${thumbImg({ kind: 'video', ...v }, '', n < 4 ? ' loading="eager"' : '')}<span class="piece-play" aria-hidden="true"></span></a>`;
@@ -213,28 +263,73 @@ function projectBody(p, i) {
     ...wide.map((v) => `<div class="video">${lite(v, p.vids.indexOf(v))}</div>`),
     tall.length ? `<div class="shorts${tall.length < 3 ? ' shorts--few' : ''}">${tall.map((v) => lite(v, p.vids.indexOf(v))).join('')}</div>` : '',
   ].filter(Boolean).join('\n\t\t\t');
-  const gallery = p.images.length
-    ? `<div class="gallery">\n${p.images.map((src, n) => `				<figure><img src="${esc(src)}" alt="${esc(p.title)} — image ${n + 1}" loading="${n < 3 ? 'eager' : 'lazy'}"></figure>`).join('\n')}\n			</div>`
+  // On a redesign page the first "after" image is already in the comparison, so the gallery shows the rest
+  const shots = p.redesign && p.before ? p.images.slice(1) : p.images;
+  const gallery = shots.length
+    ? `<div class="gallery">\n${shots.map((src, n) => `				<figure><img src="${esc(src)}" alt="${esc(p.title)} — image ${n + 1}" loading="${n < 2 ? 'eager' : 'lazy'}"></figure>`).join('\n')}\n			</div>`
     : '';
-  return `	<header class="page-head">
+  const crumb = p.redesign
+    ? `<a href="/portfolio/#redesigns">Unsolicited Redesigns</a>`
+    : `<a href="/portfolio/">Portfolio</a>`;
+  const rdCase = p.redesign ? `<section class="rd-case" aria-label="Before and after">
+			${compare(p)}
+			<div class="rd-side">
+				${p.changes.length ? `<h2>What I changed</h2>
+				<ol class="rd-changes">${p.changes.map((c) => `<li>${esc(c)}</li>`).join('')}</ol>` : ''}
+				${p.seenAt ? `<p class="rd-seen"><span>Original spotted at</span>${esc(p.seenAt)}</p>` : ''}
+				<p class="rd-note">A personal concept. Not affiliated with or commissioned by the original business. The original design belongs to its owner and is shown only for comparison.</p>
+			</div>
+		</section>` : '';
+  // "More by Pavithran": same kind of work first (redesigns with redesigns), newest first
+  const others = projects.filter((x) => x !== p);
+  const more = [...others.filter((x) => x.redesign === p.redesign), ...others.filter((x) => x.redesign !== p.redesign)].slice(0, 4);
+  const meta = [
+    p.date ? `<div><dt>Published</dt><dd>${longDate(p.date)}</dd></div>` : '',
+    p.categories.length ? `<div><dt>${p.categories.length > 1 ? 'Categories' : 'Category'}</dt><dd>${p.categories.map(esc).join(', ')}</dd></div>` : '',
+    counts(p) ? `<div><dt>In this project</dt><dd>${counts(p)}</dd></div>` : '',
+  ].join('');
+  return `	<header class="pj-head">
 		<div class="wrap">
-			${p.categories.length ? `<span class="eyebrow">${p.categories.map(esc).join(' &middot; ')}</span>` : ''}
+			<nav class="pj-crumbs" aria-label="Breadcrumb">${crumb}${p.category ? ` <span aria-hidden="true">/</span> <span>${esc(p.category)}</span>` : ''}</nav>
+			${p.redesign ? '<span class="pj-kind">Unsolicited Redesign</span>' : ''}
 			<h1>${esc(p.title)}</h1>
-			${counts(p) ? `<p class="project-count">${counts(p)}</p>` : ''}
-			${softwareList(p)}
+			<div class="pj-by">
+				<a class="pj-owner" href="/about-me/"><img src="${AVATAR}" alt="" width="44" height="44"><span><b>Pavithran</b><small>${ROLE}</small></span></a>
+				<a class="btn btn--gold pj-hire" href="/contact/">Hire me</a>
+			</div>
 			${p.description ? `<div class="project-desc">${paragraphs(p.description)}</div>` : ''}
 		</div>
 	</header>
-	<div class="wrap">
-		<div class="entry">
+	<div class="wrap pj-wrap">
+		${rdCase}
+		<div class="entry pj-canvas">
 			${video}
 			${gallery}
 		</div>
+		<div class="pj-info">
+			<div class="pj-info-who">
+				<img src="${AVATAR}" alt="" width="64" height="64">
+				<div><b>Pavithran</b><span>${ROLE}</span><a class="text-link" href="/contact/">Work with me &rarr;</a></div>
+			</div>
+			<dl class="pj-meta">${meta}</dl>
+			${softwareList(p)}
+		</div>
+		${more.length ? `<section class="pj-more" aria-labelledby="pj-more-h">
+			<div class="pj-more-head"><h2 id="pj-more-h">More by Pavithran</h2><a class="text-link" href="/portfolio/${p.redesign ? '#redesigns' : ''}">View all &rarr;</a></div>
+			<div class="work-grid">
+${more.map(card).join('\n')}
+			</div>
+		</section>` : ''}
 		<nav class="pager" aria-label="Project navigation">
 			${prev ? `<a class="text-link" href="/work/${prev.slug}/">&larr; ${esc(prev.title)}</a>` : '<span></span>'}
 			<a class="text-link" href="/portfolio/">All projects</a>
 			${next ? `<a class="text-link" href="/work/${next.slug}/">${esc(next.title)} &rarr;</a>` : '<span></span>'}
 		</nav>
+	</div>
+	<div class="pj-rail" aria-label="Project actions">
+		<a href="/contact/" class="pj-rail-btn pj-rail-btn--hire"><img src="${AVATAR}" alt=""><span>Hire me</span></a>
+		<button type="button" class="pj-rail-btn" data-share><svg viewBox="0 0 20 20" aria-hidden="true"><circle cx="15" cy="4.5" r="2.3"/><circle cx="5" cy="10" r="2.3"/><circle cx="15" cy="15.5" r="2.3"/><path d="M7 8.9l6-3.3M7 11.1l6 3.3"/></svg><span>Share</span></button>
+		<a href="#main" class="pj-rail-btn"><svg viewBox="0 0 20 20" aria-hidden="true"><path d="M10 16V4M5 9l5-5 5 5"/></svg><span>Top</span></a>
 	</div>`;
 }
 
@@ -252,28 +347,39 @@ const fill = (file, map) => {
 };
 
 const homeList = projects.filter((p) => p.home);
-const allPieces = projects.reduce((a, p) => a + p.pieces.length, 0);
-const allVideos = projects.reduce((a, p) => a + p.vids.length, 0);
+// Redesigns are not part of the work wall or the counts: their "before" is someone else's design
+const allPieces = work.reduce((a, p) => a + p.pieces.length, 0);
+const allVideos = work.reduce((a, p) => a + p.vids.length, 0);
 const allDesigns = allPieces - allVideos;
-const homeWall = mixPieces(homeList, 10);
+const homeWall = mixPieces(homeList.filter((p) => !p.redesign), 10);
 // Lead with a wide piece (a landscape video or a design) as the big feature tile
 const lead = homeWall.findIndex((x) => x.pc.kind === 'image' || !x.pc.short);
 if (lead > 0) homeWall.unshift(homeWall.splice(lead, 1)[0]);
 // Trim so the wall ends on a full row (5 columns x 2 rows per band; big/design tiles take 4 cells, others 2)
 const cells = (x, i) => (i === 0 && (x.pc.kind === 'image' || !x.pc.short)) || x.pc.kind === 'image' ? 4 : 2;
 while (homeWall.length > 4 && homeWall.reduce((a, x, i) => a + cells(x, i), 0) % 10) homeWall.pop();
-const statLine = [plural(projects.length, 'project', 'projects'), allVideos ? plural(allVideos, 'video', 'videos') : '', allDesigns ? plural(allDesigns, 'design', 'designs') : ''].filter(Boolean);
+const statLine = [plural(work.length, 'project', 'projects'), allVideos ? plural(allVideos, 'video', 'videos') : '', allDesigns ? plural(allDesigns, 'design', 'designs') : ''].filter(Boolean);
 const projChip = (p) => `<a class="proj-chip" href="/work/${p.slug}/">${p.pieces[0] ? thumbImg(p.pieces[0], '') : ''}<span><b>${esc(p.title)}</b><small>${counts(p) || esc(p.category)}</small></span><i aria-hidden="true">&rarr;</i></a>`;
 fill('index.html', {
   '<!--HOME_WALL-->': homeWall.length ? homeWall.map((x, i) => piece(x.p, x.pc, x.n, i === 0 && (x.pc.kind === 'image' || !x.pc.short) ? 'piece--big' : '')).join('\n') : empty,
   '<!--HOME_PROJECTS-->': homeList.map(projChip).join('\n'),
   '<!--WORK_STATS-->': statLine.map((t) => `<span>${t}</span>`).join(''),
 });
+const tools = swAll.map((s) => {
+  const ic = SOFTWARE_ICONS[s.toLowerCase()];
+  return ic ? `<li title="${esc(s)}"><img src="${ic}" alt="${esc(s)}" width="36" height="36" loading="lazy"></li>` : `<li class="pf-tool-txt" title="${esc(s)}">${esc(s.replace(/^adobe\s+/i, ''))}</li>`;
+}).join('');
+const pfStat = (n, one, many) => `<li><b>${n}</b><span>${n === 1 ? one : many}</span></li>`;
 fill('portfolio/index.html', {
-  '<!--FILTERS-->': filters + dock,
-  '<!--WORK_STATS-->': statLine.map((t) => `<span>${t}</span>`).join(''),
-  '<!--ALL_CARDS-->': projects.length ? projects.map(card).join('\n') : empty,
-  '<!--ALL_PIECES-->': mixPieces(projects).map((x) => piece(x.p, x.pc, x.n)).join('\n'),
+  '<!--PF_STATS-->': [pfStat(work.length, 'Project', 'Projects'), pfStat(allDesigns, 'Design', 'Designs'), pfStat(allVideos, 'Video', 'Videos'), redesigns.length ? pfStat(redesigns.length, 'Redesign', 'Redesigns') : ''].join(''),
+  '<!--PF_TOOLS-->': tools,
+  '<!--N_WORK-->': String(work.length),
+  '<!--N_RD-->': String(redesigns.length),
+  '<!--WORK_FILTERS-->': filterBar(work, 'work', 'Filter projects by category') + dock,
+  '<!--WORK_CARDS-->': work.length ? work.map(card).join('\n') : empty,
+  '<!--ALL_PIECES-->': mixPieces(work).map((x) => piece(x.p, x.pc, x.n)).join('\n'),
+  '<!--RD_FILTERS-->': filterBar(redesigns, 'rd', 'Filter redesigns by category'),
+  '<!--RD_CARDS-->': redesigns.length ? redesigns.map(card).join('\n') : emptyRd,
 });
 
 // ---------- testimonials (only real ones, added in the admin page) ----------

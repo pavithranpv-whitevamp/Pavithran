@@ -259,6 +259,11 @@ select.in { appearance: none; background-image: linear-gradient(45deg, transpare
 .cover-btns { display: flex; gap: 8px; flex-wrap: wrap; margin-top: 14px; }
 .cover-btns .btn { min-height: 42px; padding: 0 16px; font-size: .88rem; }
 .cover-btns input { position: absolute; width: 1px; height: 1px; opacity: 0; pointer-events: none; }
+.clip-before { position: absolute; left: 6px; bottom: 92px; background: var(--navy); color: var(--paper); font: 700 .72rem/1 var(--display); padding: 6px 8px; border-radius: 8px; }
+.clip.is-before { box-shadow: 0 0 0 3px var(--navy); }
+.rd-fields[hidden] { display: none; }
+.rd-fields { margin-top: 16px; padding-top: 16px; border-top: 1px solid var(--line); }
+.tile-rd { position: absolute; left: 8px; top: 8px; background: var(--gold); color: var(--navy); font: 700 .72rem/1 var(--display); padding: 6px 8px; border-radius: 8px; }
 .clip-cover { position: absolute; right: 6px; top: 6px; background: var(--gold); color: var(--navy); font: 700 .72rem/1 var(--display); padding: 6px 8px; border-radius: 8px; }
 .clip-tools { position: absolute; left: 0; right: 0; bottom: 42px; display: grid; grid-template-columns: repeat(4, 1fr); gap: 4px; padding: 6px; background: linear-gradient(to top, rgba(15,44,67,.9), rgba(15,44,67,0)); }
 .clip-tools button { min-height: 34px; border: 0; border-radius: 9px; background: rgba(245,245,245,.94); color: var(--navy); font: 700 .9rem/1 var(--display); cursor: pointer; }
@@ -489,6 +494,26 @@ select.in { appearance: none; background-image: linear-gradient(45deg, transpare
 			</section>
 
 			<section class="sec">
+				<h3>Unsolicited Redesign</h3>
+				<div class="toggle">
+					<label for="f-redesign"><span class="lbl" style="margin:0">This is an Unsolicited Redesign</span><span class="hint" style="margin-top:2px">Someone else's design you saw, redone in your style. It goes in the "Unsolicited Redesigns" tab, not with your client work.</span></label>
+					<input type="checkbox" id="f-redesign">
+				</div>
+				<div class="rd-fields" id="rd-fields" hidden>
+					<p class="help">Add both photos under <b>Photos</b> below: the original design and your redesign. Then tap <b>B</b> on the original to mark it as <b>Before</b>. Your other photos are the <b>After</b>.</p>
+					<div class="field">
+						<label for="f-seen">Where you saw the original <span style="font-weight:500;color:var(--muted)">(optional)</span></label>
+						<input class="in" type="text" id="f-seen" maxlength="120" placeholder="e.g. A bakery near Tirupur bus stand">
+						<span class="hint">Keep it general. You don't have to name the business.</span>
+					</div>
+					<div class="field">
+						<label for="f-changes">What I changed <span style="font-weight:500;color:var(--muted)">(one point per line)</span></label>
+						<textarea class="in" id="f-changes" maxlength="1500" placeholder="Cut down to two fonts so it reads from across the road&#10;Made the phone number easy to spot&#10;Used two brand colours instead of five"></textarea>
+					</div>
+				</div>
+			</section>
+
+			<section class="sec">
 				<h3>Cover image</h3>
 				<p class="help">The picture on this project's card on your Home and Portfolio pages. Upload a separate cover, or pick one of the photos below with ★.</p>
 				<div class="cover-box">
@@ -634,7 +659,7 @@ select.in { appearance: none; background-image: linear-gradient(45deg, transpare
 	var DEFAULT_CATS = ['Graphic Design', 'Social Media Posters', 'Branding', 'Motion Graphics', 'Video Editing'];
 	var NEW_CAT = '__new__';
 	var $ = function (id) { return document.getElementById(id); };
-	var state = { projects: [], editing: null, items: [], coverKey: null, extraCover: '', coverFile: null, also: [], dirty: false, busy: false };
+	var state = { projects: [], editing: null, items: [], beforeKey: null, coverKey: null, extraCover: '', coverFile: null, also: [], dirty: false, busy: false };
 	var keySeq = 0;
 
 	// ---------- helpers ----------
@@ -782,6 +807,7 @@ select.in { appearance: none; background-image: linear-gradient(45deg, transpare
 			if (p.youtube.length) { var v = document.createElement('span'); v.textContent = plural(p.youtube.length, 'video', 'videos'); counts.appendChild(v); }
 			if (p.hidden && p.hidden.length) { var hd = document.createElement('span'); hd.textContent = p.hidden.length + ' hidden'; counts.appendChild(hd); }
 			media.appendChild(counts);
+			if (p.redesign) { var rb = document.createElement('span'); rb.className = 'tile-rd'; rb.textContent = 'Redesign'; media.appendChild(rb); }
 			if (!p.show_on_home) { var h = document.createElement('span'); h.className = 'tile-hidden'; h.textContent = 'Not on Home'; media.appendChild(h); }
 			var t = document.createElement('span'); t.className = 'tile-title'; t.textContent = p.title;
 			var c = document.createElement('span'); c.className = 'tile-cat';
@@ -850,12 +876,13 @@ select.in { appearance: none; background-image: linear-gradient(45deg, transpare
 		$('f-newcat').value = ''; $('chip-new').hidden = true;
 		state.dirty = true; renderAlso();
 	}
+	$('f-redesign').addEventListener('change', function () { $('rd-fields').hidden = !this.checked; state.dirty = true; renderTrack(); });
 	$('newcat-add').addEventListener('click', addNewAlso);
 	$('f-newcat').addEventListener('keydown', function (e) { if (e.key === 'Enter') { e.preventDefault(); addNewAlso(); } });
 
 	// ---------- editor ----------
 	function openEditor(p) {
-		state.editing = p; state.items = []; state.coverKey = null; state.extraCover = ''; state.coverFile = null;
+		state.editing = p; state.items = []; state.beforeKey = null; state.coverKey = null; state.extraCover = ''; state.coverFile = null;
 		var cats = p ? (p.categories && p.categories.length ? p.categories : (p.category ? [p.category] : [])) : [];
 		state.also = cats.slice(1);
 		msg($('edit-error'));
@@ -870,11 +897,16 @@ select.in { appearance: none; background-image: linear-gradient(45deg, transpare
 		renderSoftware();
 		$('f-date').value = (p && p.date) || new Date().toISOString().slice(0, 10);
 		$('f-home').checked = p ? p.show_on_home : true;
+		$('f-redesign').checked = !!(p && p.redesign);
+		$('f-seen').value = (p && p.seen_at) || '';
+		$('f-changes').value = (p && p.changes) || '';
+		$('rd-fields').hidden = !$('f-redesign').checked;
 		if (p) {
 			p.images.forEach(function (path) {
 				var it = { key: 'k' + (++keySeq), kind: 'existing', path: path, preview: path, off: (p.hidden || []).indexOf(path) !== -1 };
 				state.items.push(it);
 				if (p.cover && p.cover === path && !state.coverKey) state.coverKey = it.key;
+				if (p.redesign && p.before === path && !state.beforeKey) state.beforeKey = it.key;
 			});
 			if (p.cover && !state.coverKey) state.extraCover = p.cover;
 		}
@@ -942,14 +974,22 @@ select.in { appearance: none; background-image: linear-gradient(45deg, transpare
 			d.appendChild(img);
 			var no = document.createElement('span'); no.className = 'clip-no'; no.textContent = i + 1; d.appendChild(no);
 			if (i === ci) { var cv = document.createElement('span'); cv.className = 'clip-cover'; cv.textContent = 'Cover'; d.appendChild(cv); }
+			var isRd = $('f-redesign').checked, isBefore = isRd && state.beforeKey === it.key;
+			if (isBefore) { d.classList.add('is-before'); var bf = document.createElement('span'); bf.className = 'clip-before'; bf.textContent = 'Before (original)'; d.appendChild(bf); }
 			var tools = document.createElement('div'); tools.className = 'clip-tools';
+			if (isRd) tools.style.gridTemplateColumns = 'repeat(5, 1fr)';
 			tools.appendChild(tool('◀', 'Move photo ' + (i + 1) + ' earlier', i === 0, function () { move(i, -1); }));
 			var star = tool('★', 'Make photo ' + (i + 1) + ' the cover', false, function () { state.coverKey = it.key; state.extraCover = ''; state.coverFile = null; state.dirty = true; renderTrack(); toast('Cover changed'); });
 			star.setAttribute('aria-pressed', String(i === ci)); tools.appendChild(star);
+			if (isRd) {
+				var bb = tool('B', 'Mark photo ' + (i + 1) + ' as the original design (Before)', false, function () { state.beforeKey = state.beforeKey === it.key ? null : it.key; state.dirty = true; renderTrack(); toast(state.beforeKey ? 'Marked as Before' : 'Before cleared'); });
+				bb.setAttribute('aria-pressed', String(isBefore)); tools.appendChild(bb);
+			}
 			tools.appendChild(tool('▶', 'Move photo ' + (i + 1) + ' later', i === state.items.length - 1, function () { move(i, 1); }));
 			var rm = tool('✕', 'Remove photo ' + (i + 1), false, function () {
 				state.items.splice(i, 1);
 				if (state.coverKey === it.key) state.coverKey = null;
+				if (state.beforeKey === it.key) state.beforeKey = null;
 				state.dirty = true; renderTrack();
 			});
 			rm.className = 'rm'; tools.appendChild(rm);
@@ -1138,6 +1178,10 @@ select.in { appearance: none; background-image: linear-gradient(45deg, transpare
 		if (!title) { fail('Add a project title.'); $('f-title').focus(); return; }
 		if (badLink) { fail('This isn’t a YouTube link: ' + badLink); return; }
 		if (!state.items.length && !links.length) { fail('Add at least one photo or a YouTube link.'); return; }
+		var isRd = $('f-redesign').checked;
+		var beforeItem = isRd ? state.items.filter(function (it) { return it.key === state.beforeKey; })[0] : null;
+		if (isRd && state.items.length < 2) { fail('A redesign needs two photos: the original design (Before) and your redesign (After).'); return; }
+		if (isRd && !beforeItem) { fail('Tap B on the photo of the original design to mark it as Before.'); return; }
 		var anyLive = state.items.some(function (it) { return !it.off; }) || links.length > offLinks.length;
 		if (!anyLive && !confirm('Every photo and video is switched off, so this project won’t show on your website at all. Publish anyway?')) return;
 
@@ -1171,7 +1215,8 @@ select.in { appearance: none; background-image: linear-gradient(45deg, transpare
 					title: title, category: main, categories: [main].concat(also).filter(Boolean),
 					date: $('f-date').value, show_on_home: $('f-home').checked,
 					cover: cover || '', description: $('f-desc').value, software: (state.software || []).slice(), youtube: links, images: images,
-					hidden: state.items.filter(function (it) { return it.off; }).map(function (it) { return it.path; }).concat(offLinks)
+					hidden: state.items.filter(function (it) { return it.off; }).map(function (it) { return it.path; }).concat(offLinks),
+					redesign: isRd, before: beforeItem ? beforeItem.path : '', seen_at: isRd ? $('f-seen').value : '', changes: isRd ? $('f-changes').value : ''
 				}
 			});
 		}).then(function (r) {
